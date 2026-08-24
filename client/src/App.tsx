@@ -10,6 +10,7 @@ import { CardDrawModal } from './components/Modals/CardDrawModal';
 import { TradeModal } from './components/Modals/TradeModal';
 import { AuctionModal } from './components/Modals/AuctionModal';
 import { GameOverModal } from './components/Modals/GameOverModal';
+import { GameInfoModal } from './components/Modals/GameInfoModal';
 import { sounds } from './audio/SoundEffects';
 import { Player } from './types';
 
@@ -53,6 +54,7 @@ export function App() {
   } = useGameSocket();
 
   const [isMuted, setIsMuted] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   const handleToggleMute = () => {
     const muted = sounds.toggleMute();
@@ -64,7 +66,7 @@ export function App() {
     setShowTradeModal(true);
   };
 
-  // 1. Splash Screen
+  // 1. Splash Screen (Landing / Create / Join)
   if (!gameState) {
     return (
       <SplashScreen
@@ -96,11 +98,11 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
       {/* Top Navbar */}
-      <header className="w-full bg-slate-900/90 border-b border-emerald-500/30 px-4 py-2 flex items-center justify-between z-30 shadow-md backdrop-blur-md">
+      <header className="w-full bg-slate-900/90 border-b border-emerald-500/30 px-3 sm:px-4 py-2 flex items-center justify-between z-30 shadow-md backdrop-blur-md sticky top-0">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🇵🇰</span>
+          <span className="text-xl sm:text-2xl animate-bounce-short">🇵🇰</span>
           <div>
-            <h1 className="font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-emerald-400 to-amber-300 bg-clip-text text-transparent">
+            <h1 className="font-black text-sm sm:text-base tracking-wider bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-400 bg-clip-text text-transparent">
               PLOT TWIST
             </h1>
             <span className="text-[10px] text-slate-400 font-semibold block leading-none">
@@ -109,17 +111,29 @@ export function App() {
           </div>
         </div>
 
-        {/* Center info */}
-        <div className="hidden md:flex items-center gap-3 text-xs bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
+        {/* Center Turn Status Indicator */}
+        <div className="hidden md:flex items-center gap-3 text-xs bg-slate-950 px-3.5 py-1 rounded-full border border-slate-800 shadow-inner">
           <span className="text-slate-400">Turn {gameState.turnNumber}</span>
-          <span>•</span>
-          <span className="text-emerald-400 font-bold">
-            Current: {gameState.players[gameState.currentPlayerIndex]?.name || 'Player'}
+          <span className="text-slate-600">•</span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1">
+            <span>Current:</span>
+            <strong className="text-white">
+              {gameState.players[gameState.currentPlayerIndex]?.name || 'Player'}
+            </strong>
           </span>
         </div>
 
-        {/* Right Tools */}
+        {/* Right Action Tools */}
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowRulesModal(true)}
+            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold rounded-xl border border-slate-700 transition-colors flex items-center gap-1"
+            title="Inspect active match rules"
+          >
+            <span>📋</span>
+            <span className="hidden sm:inline">Rules</span>
+          </button>
+
           <button
             onClick={handleToggleMute}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs transition-colors"
@@ -130,7 +144,7 @@ export function App() {
 
           <button
             onClick={() => setShowTradeModal(true)}
-            className="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs rounded-xl transition-colors hidden sm:inline-flex items-center gap-1"
+            className="px-3 py-1.5 bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs rounded-xl shadow transition-transform hover:scale-105 hidden sm:inline-flex items-center gap-1"
           >
             <span>🤝</span>
             <span>Trade</span>
@@ -153,11 +167,12 @@ export function App() {
             gameState={gameState}
             myPlayerId={myPlayerId}
             onSelectProperty={(idx) => setSelectedPropertyIndex(idx)}
+            onOpenRules={() => setShowRulesModal(true)}
           />
         </div>
 
         {/* Side Panel (Leaderboard, Logs, Chat) */}
-        <div className="w-full lg:w-80 h-[500px] lg:h-[750px]">
+        <div className="w-full lg:w-80 h-[480px] lg:h-[720px]">
           <SidePanel
             gameState={gameState}
             myPlayer={myPlayer}
@@ -168,7 +183,7 @@ export function App() {
         </div>
       </main>
 
-      {/* Bottom Sticky Action Panel */}
+      {/* Bottom Contextual Action Panel */}
       <ActionPanel
         gameState={gameState}
         myPlayer={myPlayer}
@@ -187,7 +202,7 @@ export function App() {
         }}
       />
 
-      {/* Modals */}
+      {/* Title Deed Inspector Modal */}
       {selectedPropertyIndex !== null && (
         <TitleDeedModal
           spaceIndex={selectedPropertyIndex}
@@ -200,6 +215,7 @@ export function App() {
         />
       )}
 
+      {/* Card Reveal Popup Modal */}
       {activeCardPopup && (
         <CardDrawModal
           card={activeCardPopup}
@@ -207,6 +223,7 @@ export function App() {
         />
       )}
 
+      {/* Trade Negotiation Modal */}
       <TradeModal
         isOpen={showTradeModal}
         gameState={gameState}
@@ -216,6 +233,7 @@ export function App() {
         onRespondTrade={respondTrade}
       />
 
+      {/* Live Auction Modal */}
       {gameState.status === 'AUCTION' && (
         <AuctionModal
           auction={gameState.currentAuction}
@@ -226,6 +244,16 @@ export function App() {
         />
       )}
 
+      {/* Game Info / Active Match Settings Modal */}
+      <GameInfoModal
+        isOpen={showRulesModal}
+        settings={gameState.settings}
+        roomCode={gameState.roomCode}
+        roomName={gameState.roomName}
+        onClose={() => setShowRulesModal(false)}
+      />
+
+      {/* Game Over Victory Modal */}
       {gameState.status === 'GAME_OVER' && (
         <GameOverModal
           gameState={gameState}

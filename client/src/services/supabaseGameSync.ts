@@ -5,6 +5,7 @@ import { DEFAULT_GAME_SETTINGS } from '../types';
 
 export class SupabaseGameSync {
   private static activeChannel: any = null;
+  private static activeRoomCode: string | null = null;
 
   public static async createRoom(
     roomName: string,
@@ -12,7 +13,7 @@ export class SupabaseGameSync {
     settings?: Partial<GameSettings>
   ): Promise<{ success: boolean; roomCode?: string; state?: GameState; error?: string }> {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, error: 'Supabase not configured' };
+      return { success: false, error: 'Multiplayer service is not configured' };
     }
 
     const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -73,71 +74,128 @@ export class SupabaseGameSync {
 
       if (error) {
         console.error('Supabase create room error:', error);
-        return { success: false, error: error.message };
+        return { success: false, error: 'Could not create room. Please try again.' };
       }
 
       return { success: true, roomCode, state: initialState };
     } catch (e: any) {
-      return { success: false, error: e.message };
+      return { success: false, error: 'Network error creating game room' };
     }
+  }
+
+  public static async fetchRoomState(
+    roomCode: string,
+    retries = 3
+  ): Promise<{ success: boolean; state?: GameState; error?: string }> {
+    if (!isSupabaseConfigured || !supabase) {
+      return { success: false, error: 'Multiplayer service is not configured' };
+    }
+
+    const code = roomCode.toUpperCase().trim();
+    for (let attempt = 0; attempt < retries; attempt++) {
+      try {
+        const { data, error } = await supabase
+          .from('rooms')
+          .select('*')
+          .eq('room_code', code)
+          .maybeSingle();
+
+        if (data && data.game_state) {
+          return { success: true, state: data.game_state as GameState };
+        }
+
+        if (attempt < retries - 1) {
+          await new Promise((r) => setTimeout(r, 400));
+        }
+      } catch (e) {
+        if (attempt === retries - 1) {
+          return { success: false, error: 'Could not connect to room' };
+        }
+      }
+    }
+    return { success: false, error: 'Room not found. Please check your room code.' };
   }
 
   public static async joinRoom(
     roomCode: string,
-    newPlayer: Player
-  ): Promise<{ success: boolean; state?: GameState; error?: string }> {
+    newPlayer: Player,
+    existingPlayerId?: string | null
+  ): Promise<{ success: boolean; state?: GameState; reclaimedPlayerId?: string; error?: string }> {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, error: 'Supabase not configured' };
+      return { success: false, error: 'Multiplayer service is not configured' };
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('rooms')
-        .select('*')
-        .eq('room_code', roomCode.toUpperCase())
-        .single();
-
-      if (error || !data) {
-        return { success: false, error: 'Room not found. Check the room code.' };
-      }
-
-      const state = data.game_state as GameState;
-      if (state.status !== 'LOBBY') {
-        // Check if player is reconnecting
-        const existingIdx = state.players.findIndex((p) => p.id === newPlayer.id || p.name === newPlayer.name);
-        if (existingIdx !== -1) {
-          state.players[existingIdx].connected = true;
-          return { success: true, state };
-        }
-        return { success: false, error: 'Game already in progress' };
-      }
-
-      if (state.players.length >= 8) {
-        return { success: false, error: 'Room is full (max 8)' };
-      }
-
-      // Add player
-      newPlayer.cash = state.settings.startingMoney;
-      state.players.push(newPlayer);
-      state.logs.push({
-        id: `log_${Date.now()}`,
-        timestamp: Date.now(),
-        text: `${newPlayer.name} joined the room!`,
-        type: 'CHAT',
-      });
-
-      await this.updateGameState(roomCode, state);
-
-      return { success: true, state };
-    } catch (e: any) {
-      return { success: false, error: e.message };
+    const code = roomCode.toUpperCase().trim();
+    const fetchRes = await this.fetchRoomState(code, 3);
+    if (!fetchRes.success || !fetchRes.state) {
+      return { success: false, error: fetchRes.error || 'Room not found' };
     }
+
+    const state = fetchRes.state;
+
+    // 1. Check for Reconnection / Existing Player Slot
+    if (existingPlayerId) {
+      const existingIdx = state.players.findIndex((p) => p.id === existingPlayerId);
+      if (existingIdx !== -1) {
+        state.players[existingIdx].connected = true;
+        await this.updateGameState(code, state);
+        return { success: true, state, reclaimedPlayerId: existingPlayerId };
+      }
+    }
+
+    // Check by name if same nickname already in match
+    const sameNameIdx = state.players.findIndex(
+      (p) => p.name.trim().toLowerCase() === newPlayer.name.trim().toLowerCase()
+    );
+    if (sameNameIdx !== -1) {
+      state.players[sameNameIdx].connected = true;
+      await this.updateGameState(code, state);
+      return { success: true, state, reclaimedPlayerId: state.players[sameNameIdx].id };
+    }
+
+    // 2. If room already started and not reconnecting
+    if (state.status !== 'LOBBY') {
+      return { success: false, error: 'This match is already in progress' };
+    }
+
+    // 3. Room full check
+    if (state.players.length >= 8) {
+      return { success: false, error: 'This room is full (maximum 8 players)' };
+    }
+
+    // 4. Add new player to room
+    newPlayer.cash = state.settings.startingMoney;
+    state.players.push(newPlayer);
+    state.logs.push({
+      id: `log_${Date.now()}`,
+      timestamp: Date.now(),
+      text: `${newPlayer.name} joined the room!`,
+      type: 'CHAT',
+    });
+
+    await this.updateGameState(code, state);
+    return { success: true, state, reclaimedPlayerId: newPlayer.id };
   }
 
   public static async updateGameState(roomCode: string, newState: GameState) {
     if (!isSupabaseConfigured || !supabase) return;
 
     try {
+      // Host Failover check: If host is disconnected or left, transfer host privileges
+      const hostExists = newState.players.some((p) => p.id === newState.hostId && p.connected);
+      if (!hostExists && newState.players.length > 0) {
+        const firstConnected = newState.players.find((p) => p.connected && !p.isBot);
+        if (firstConnected) {
+          newState.hostId = firstConnected.id;
+          newState.logs.push({
+            id: `log_${Date.now()}_host`,
+            timestamp: Date.now(),
+            text: `👑 Host privileges transferred to ${firstConnected.name}.`,
+            type: 'CHAT',
+          });
+        }
+      }
+
       await supabase
         .from('rooms')
         .update({
@@ -154,19 +212,23 @@ export class SupabaseGameSync {
   public static subscribeToRoom(roomCode: string, onUpdate: (state: GameState) => void) {
     if (!isSupabaseConfigured || !supabase) return null;
 
-    if (this.activeChannel) {
-      this.activeChannel.unsubscribe();
+    const code = roomCode.toUpperCase().trim();
+    if (this.activeChannel && this.activeRoomCode === code) {
+      return this.activeChannel;
     }
 
+    this.unsubscribe();
+    this.activeRoomCode = code;
+
     const channel = supabase
-      .channel(`room_${roomCode.toUpperCase()}`)
+      .channel(`room_${code}`)
       .on(
         'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'rooms',
-          filter: `room_code=eq.${roomCode.toUpperCase()}`,
+          filter: `room_code=eq.${code}`,
         },
         (payload) => {
           if (payload.new && payload.new.game_state) {
@@ -174,7 +236,11 @@ export class SupabaseGameSync {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[Supabase Realtime] Subscribed to room ${code}`);
+        }
+      });
 
     this.activeChannel = channel;
     return channel;
@@ -184,6 +250,7 @@ export class SupabaseGameSync {
     if (this.activeChannel) {
       this.activeChannel.unsubscribe();
       this.activeChannel = null;
+      this.activeRoomCode = null;
     }
   }
 }

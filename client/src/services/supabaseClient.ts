@@ -1,6 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Default Supabase project credentials for Plot Twist
 const DEFAULT_SUPABASE_URL = 'https://kczsxllqnwcbxkccblrz.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_A9SBiFBD-cM5rHkgz-Z4jw__VYZxQ-G';
 
@@ -13,6 +12,11 @@ export const isSupabaseConfigured = Boolean(
 
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
       realtime: {
         params: {
           eventsPerSecond: 20,

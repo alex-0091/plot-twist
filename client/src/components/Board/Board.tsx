@@ -9,12 +9,14 @@ interface BoardProps {
   gameState: GameState;
   myPlayerId: string | null;
   onSelectProperty: (spaceIndex: number) => void;
+  onOpenRules?: () => void;
 }
 
 export const Board: React.FC<BoardProps> = ({
   gameState,
   myPlayerId,
   onSelectProperty,
+  onOpenRules,
 }) => {
   const currentPlayer = gameState.players[gameState.currentPlayerIndex] || null;
 
@@ -89,6 +91,7 @@ export const Board: React.FC<BoardProps> = ({
             gameState={gameState}
             currentPlayer={currentPlayer}
             myPlayerId={myPlayerId}
+            onOpenRules={onOpenRules}
           />
         </div>
 
