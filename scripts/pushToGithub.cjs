@@ -67,6 +67,8 @@ async function main() {
   });
   console.log('Commit SHA:', sha);
 
+  await git.branch({ fs, dir, ref: 'main', checkout: true });
+
   console.log('🚀 Pushing to GitHub (main branch)...');
   await git.push({
     fs,
@@ -74,6 +76,7 @@ async function main() {
     dir,
     url: 'https://github.com/alex-0091/plot-twist.git',
     ref: 'main',
+    remoteRef: 'main',
     force: true,
     onAuth: () => ({ username: token }),
   });
