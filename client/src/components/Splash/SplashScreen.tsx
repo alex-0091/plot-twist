@@ -49,13 +49,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-emerald-950/60 to-slate-950 relative overflow-hidden">
+    <div className="h-[100dvh] max-h-[100dvh] overflow-y-auto flex flex-col items-center justify-center p-3 sm:p-6 bg-gradient-to-br from-slate-950 via-emerald-950/60 to-slate-950 relative">
       {/* Decorative Pakistani Truck Art Elements */}
       <div className="absolute -top-24 -left-24 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Main Container Card */}
-      <div className="w-full max-w-xl bg-slate-900/90 border-2 border-emerald-500/50 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur-xl relative z-10 truck-art-border space-y-4">
+      <div className="w-full max-w-lg bg-slate-900/90 border-2 border-emerald-500/50 rounded-3xl p-4 sm:p-6 shadow-2xl backdrop-blur-xl relative z-10 truck-art-border space-y-3.5 my-auto">
         {/* Animated Funny Pakistani Cover Photo Art */}
         <PakistaniCoverArt />
         {/* Branding & Header */}

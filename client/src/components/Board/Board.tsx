@@ -20,7 +20,6 @@ export const Board: React.FC<BoardProps> = ({
 }) => {
   const currentPlayer = gameState.players[gameState.currentPlayerIndex] || null;
 
-  // Helper to get players on a space
   const getPlayersOnSpace = (spaceIdx: number) => {
     return gameState.players.filter((p) => !p.isBankrupt && p.position === spaceIdx);
   };
@@ -32,8 +31,8 @@ export const Board: React.FC<BoardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-[850px] aspect-square mx-auto p-2 sm:p-3 bg-slate-950 rounded-2xl border-4 border-emerald-600/50 shadow-[0_0_35px_rgba(5,150,105,0.25)] truck-art-border">
-      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-1 bg-slate-900/60 rounded-xl p-1">
+    <div className="relative w-full max-w-[calc(100dvh-130px)] max-h-[calc(100dvh-130px)] aspect-square p-1 sm:p-2 bg-slate-950 rounded-2xl border-2 sm:border-4 border-emerald-600/60 shadow-[0_0_35px_rgba(5,150,105,0.3)] truck-art-border flex items-center justify-center select-none">
+      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 sm:gap-1 bg-slate-900/80 rounded-xl p-0.5 sm:p-1">
         {/* 1. TOP ROW: Spaces 20 (Corner) -> 21..29 -> 30 (Corner) */}
         {/* Row 1, Col 1: Space 20 (Hira Mandi / Free Parking) */}
         <div className="col-start-1 row-start-1">
@@ -86,7 +85,7 @@ export const Board: React.FC<BoardProps> = ({
         ))}
 
         {/* 3. CENTER AREA: Cols 2..10, Rows 2..10 */}
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-2">
+        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1 sm:p-2">
           <CenterBoard
             gameState={gameState}
             currentPlayer={currentPlayer}
