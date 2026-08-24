@@ -67,7 +67,11 @@ async function main() {
   });
   console.log('Commit SHA:', sha);
 
-  await git.branch({ fs, dir, ref: 'main', checkout: true });
+  try {
+    await git.branch({ fs, dir, ref: 'main', checkout: true });
+  } catch (e) {
+    // branch already exists
+  }
 
   console.log('🚀 Pushing to GitHub (main branch)...');
   await git.push({
