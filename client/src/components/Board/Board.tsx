@@ -31,8 +31,16 @@ export const Board: React.FC<BoardProps> = ({
   };
 
   return (
-    <div className="relative w-full max-w-[calc(100dvh-130px)] max-h-[calc(100dvh-130px)] aspect-square p-1 sm:p-2 bg-slate-950 rounded-2xl border-2 sm:border-4 border-emerald-600/60 shadow-[0_0_35px_rgba(5,150,105,0.3)] truck-art-border flex items-center justify-center select-none">
-      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 sm:gap-1 bg-slate-900/80 rounded-xl p-0.5 sm:p-1">
+    <div
+      className="relative aspect-square p-1 sm:p-1.5 bg-slate-950 rounded-2xl border-2 sm:border-4 border-emerald-600/60 shadow-[0_0_35px_rgba(5,150,105,0.3)] truck-art-border flex items-center justify-center select-none shrink-0"
+      style={{
+        maxHeight: 'min(calc(100dvh - 125px), calc(100vw - 16px))',
+        maxWidth: 'min(calc(100dvh - 125px), calc(100vw - 16px))',
+        width: '100%',
+        height: '100%',
+      }}
+    >
+      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 bg-slate-900/80 rounded-xl p-0.5">
         {/* 1. TOP ROW: Spaces 20 (Corner) -> 21..29 -> 30 (Corner) */}
         {/* Row 1, Col 1: Space 20 (Hira Mandi / Free Parking) */}
         <div className="col-start-1 row-start-1">
@@ -85,7 +93,7 @@ export const Board: React.FC<BoardProps> = ({
         ))}
 
         {/* 3. CENTER AREA: Cols 2..10, Rows 2..10 */}
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1 sm:p-2">
+        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1">
           <CenterBoard
             gameState={gameState}
             currentPlayer={currentPlayer}
