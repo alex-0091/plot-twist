@@ -32,10 +32,10 @@ export const Board: React.FC<BoardProps> = ({
 
   return (
     <div
-      className="relative aspect-square p-1 bg-[#1c182c] rounded-2xl border-2 border-[#2e284a] shadow-2xl flex items-center justify-center select-none shrink-0"
+      className="relative aspect-square p-0.5 sm:p-1 bg-[#1c182c] rounded-2xl border border-[#2e284a] shadow-2xl flex items-center justify-center select-none shrink-0"
       style={{
-        maxHeight: 'min(calc(100dvh - 120px), calc(100vw - 16px))',
-        maxWidth: 'min(calc(100dvh - 120px), calc(100vw - 16px))',
+        maxHeight: 'min(calc(100dvh - 110px), calc(100vw - 12px))',
+        maxWidth: 'min(calc(100dvh - 110px), calc(100vw - 12px))',
         width: '100%',
         height: '100%',
       }}
@@ -90,7 +90,7 @@ export const Board: React.FC<BoardProps> = ({
         ))}
 
         {/* 3. CENTER AREA */}
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1">
+        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-0.5 sm:p-1">
           <CenterBoard
             gameState={gameState}
             currentPlayer={currentPlayer}

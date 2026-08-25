@@ -36,7 +36,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
     onSendChat(taunt);
   };
 
-  // Sort players by cash / alive status
   const sortedPlayers = [...gameState.players].sort((a, b) => {
     if (a.isBankrupt && !b.isBankrupt) return 1;
     if (!a.isBankrupt && b.isBankrupt) return -1;
@@ -122,9 +121,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       </div>
                       <div className="text-[10px] text-slate-400">
                         {player.isBankrupt ? (
-                          <span className="text-red-400 font-bold">💀 BANKRUPT</span>
+                          <span className="text-red-400 font-bold">BANKRUPT</span>
                         ) : player.inJail ? (
-                          <span className="text-amber-400 font-bold">🚔 In Thana ({player.jailTurns}/3)</span>
+                          <span className="text-amber-400 font-bold">In Jail ({player.jailTurns}/3)</span>
                         ) : (
                           <span>At {BOARD_SPACES[player.position]?.name}</span>
                         )}
@@ -133,8 +132,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   </div>
 
                   <div className="text-right">
-                    <div className="text-xs font-black text-[#81be97]">
-                      Rs {player.cash.toLocaleString()}
+                    <div className="text-xs font-black font-mono text-[#81be97]">
+                      {player.cash.toLocaleString()}
                     </div>
                     <div className="text-[10px] text-slate-400">
                       {player.properties.length} plots
@@ -156,9 +155,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                             ps?.isMortgaged ? 'opacity-50 line-through' : ''
                           }`}
                           style={{ backgroundColor: sp.colorHex || '#475569' }}
-                          title={`${sp.name} - Click to view`}
+                          title={sp.name}
                         >
-                          <span>{sp.name.split(' ')[0]}</span>
+                          <span>{sp.name}</span>
                           {ps?.hasHotel ? '🏨' : ps?.houses ? `🏡${ps.houses}` : ''}
                         </span>
                       );
@@ -203,9 +202,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   : 'bg-[#130f1d] border-[#2e284a] text-slate-300'
               }`}
             >
-              <div className="flex items-start justify-between gap-1">
-                <span>{log.text}</span>
-              </div>
+              <span>{log.text}</span>
             </div>
           ))}
           <div ref={logsEndRef} />
@@ -215,19 +212,19 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       {/* Tab 3: CHAT */}
       {activeTab === 'CHAT' && (
         <div className="flex-1 flex flex-col justify-between p-3 gap-2 overflow-hidden">
-          {/* Quick Taunts */}
+          {/* Quick Banter */}
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Quick Pakistani Banter:
+              Quick Messages:
             </span>
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                'Wallet check kar le bhai! 💸',
-                'Bhai now owns Islamabad! 👑',
-                'Plot gaya. Paisa gaya! 💀',
-                'Chai pani ka kharcha do! ☕',
-                'Abba nahi manenge! 🚗',
-                'Lahori directions mat lena! 🧭',
+                'Good game! 🤝',
+                'Nice property! 🏢',
+                'Rent please! 💸',
+                'Trade deal? 📜',
+                'Going to jail! 🚨',
+                'Watch out! ⚡',
               ].map((taunt) => (
                 <button
                   key={taunt}

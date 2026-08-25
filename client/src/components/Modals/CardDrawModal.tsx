@@ -25,7 +25,7 @@ export const CardDrawModal: React.FC<CardDrawModalProps> = ({ card, onClose }) =
               isSceneOnHai ? 'bg-amber-600' : 'bg-emerald-600'
             }`}
           >
-            {isSceneOnHai ? '😂 SCENE ON HAI' : '🇵🇰 PAKISTAN ZINDABAD'}
+            {isSceneOnHai ? '⚡ SCENE ON HAI' : '🇵🇰 PAKISTAN ZINDABAD'}
           </div>
 
           {/* Illustration */}
@@ -33,16 +33,11 @@ export const CardDrawModal: React.FC<CardDrawModalProps> = ({ card, onClose }) =
             {card.illustration || '🃏'}
           </div>
 
-          {/* Card Title & Urdu */}
+          {/* Card Title */}
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide">
               {card.title}
             </h2>
-            {card.urduTitle && (
-              <p className="text-sm font-urdu text-amber-400 font-bold mt-0.5">
-                {card.urduTitle}
-              </p>
-            )}
           </div>
 
           {/* Setup Description Story */}
@@ -66,7 +61,7 @@ export const CardDrawModal: React.FC<CardDrawModalProps> = ({ card, onClose }) =
             onClick={onClose}
             className="mt-1 w-full py-3 bg-[#7053ff] hover:bg-[#6244f5] text-white font-black text-sm rounded-2xl shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
           >
-            SAMAJH GAYA! (OK) »
+            CONTINUE »
           </button>
         </div>
       </div>

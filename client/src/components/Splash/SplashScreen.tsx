@@ -12,12 +12,28 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
   onCreateRoom,
   onJoinRoom,
 }) => {
+  // Splash Banner Intro (1.8s duration)
+  const [showIntroSplash, setShowIntroSplash] = useState(() => {
+    const hasSeenIntro = sessionStorage.getItem('pt_intro_seen');
+    return !hasSeenIntro;
+  });
+
   const [playerName, setPlayerName] = useState(() => localStorage.getItem('pt_username') || 'Owais');
   const [selectedTokenId, setSelectedTokenId] = useState('rickshaw');
-  const [roomName, setRoomName] = useState('Owais ka Plot');
+  const [roomName, setRoomName] = useState('Owais Game');
   const [roomCodeInput, setRoomCodeInput] = useState('');
-  const [viewState, setViewState] = useState<'HOME' | 'CREATE' | 'JOIN' | 'ROOMS'>('HOME');
+  const [viewState, setViewState] = useState<'HOME' | 'CREATE' | 'JOIN'>('HOME');
   const [isMuted, setIsMuted] = useState(false);
+
+  useEffect(() => {
+    if (showIntroSplash) {
+      const timer = setTimeout(() => {
+        setShowIntroSplash(false);
+        sessionStorage.setItem('pt_intro_seen', 'true');
+      }, 1800);
+      return () => clearTimeout(timer);
+    }
+  }, [showIntroSplash]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -56,9 +72,24 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
     onJoinRoom(roomCodeInput.trim().toUpperCase(), playerName.trim(), avatar, selectedToken.id, selectedToken.emoji);
   };
 
+  // 1. Initial 1.8-second Wallpaper Splash Banner
+  if (showIntroSplash) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#130f1d] flex items-center justify-center overflow-hidden animate-in fade-in duration-500">
+        <img
+          src="/splash.jpg"
+          alt="Loading Plot Twist"
+          className="w-full h-full object-cover select-none pointer-events-none"
+        />
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
+    );
+  }
+
+  // 2. Main Richup Home Screen
   return (
     <div className="h-[100dvh] max-h-[100dvh] overflow-y-auto bg-[#130f1d] text-slate-100 flex flex-col justify-between select-none">
-      {/* 1. Richup Top Bar */}
+      {/* Top Bar */}
       <header className="w-full max-w-5xl mx-auto px-4 py-3 flex items-center justify-between z-20 shrink-0">
         <div className="flex items-center gap-2">
           <button
@@ -72,7 +103,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
             {isMuted ? '🔇' : '🔊'}
           </button>
           <span className="text-xs bg-[#241d3b] text-[#b1b2f2] border border-[#3b3260] px-3 py-1 rounded-full font-bold">
-            🇵🇰 Monopoly Pakistan Edition
+            Monopoly Pakistan Edition
           </span>
         </div>
 
@@ -86,15 +117,13 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         </div>
       </header>
 
-      {/* 2. Richup Hero & Central Action Hub */}
+      {/* Hero & Action Hub */}
       <main className="flex-1 w-full max-w-md mx-auto px-4 py-2 flex flex-col items-center justify-center gap-4 z-10 my-auto">
-        {/* Richup-style Logo with 3D Die */}
         <div className="w-full flex flex-col items-center text-center">
           <div className="flex items-center justify-center gap-3 mb-1">
             <PhysicalDie3D value={6} rolling={false} />
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-1.5">
-              <span>PLOT TWIST</span>
-              <span className="text-2xl">🇵🇰</span>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+              PLOT TWIST
             </h1>
           </div>
           <h2 className="text-sm font-semibold text-[#b1b2f2] tracking-wide">
@@ -138,7 +167,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                       ? 'bg-[#7053ff] ring-2 ring-[#b1b2f2] scale-105 shadow text-white'
                       : 'bg-[#130f1d] hover:bg-[#26213b] text-slate-400 border border-[#2e284a]'
                   }`}
-                  title={`${token.name} (${token.urduName})`}
+                  title={token.name}
                 >
                   {token.emoji}
                 </button>
@@ -158,7 +187,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                 <span className="text-xl">»</span>
               </button>
 
-              {/* Secondary Buttons: All Rooms & Create Private Game */}
+              {/* Secondary Buttons: Join & Create Private Game */}
               <div className="grid grid-cols-2 gap-2.5">
                 <button
                   onClick={() => {
@@ -179,7 +208,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                   className="py-3 px-3 bg-[#130f1d] hover:bg-[#26213b] text-[#b1b2f2] font-bold text-xs rounded-xl border border-[#2e284a] transition-colors flex items-center justify-center gap-1.5"
                 >
                   <span>🔑</span>
-                  <span>Create a private game</span>
+                  <span>Create Private Game</span>
                 </button>
               </div>
             </div>
@@ -196,7 +225,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                   type="text"
                   value={roomName}
                   onChange={(e) => setRoomName(e.target.value)}
-                  placeholder="e.g. Islamabad Elite Match"
+                  placeholder="e.g. Islamabad Match"
                   className="w-full bg-[#130f1d] border border-[#2e284a] rounded-xl px-3 py-2 text-sm text-white font-bold focus:outline-none focus:border-[#7053ff]"
                 />
               </div>
@@ -257,31 +286,31 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
         </div>
       </main>
 
-      {/* 3. Richup Exact "How to play" Cards */}
+      {/* Footer "How to play" Cards */}
       <footer id="how-to-play" className="w-full max-w-4xl mx-auto px-4 py-4 text-xs text-slate-400 shrink-0">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div className="bg-[#1c182c] border border-[#2e284a] p-3 rounded-2xl flex flex-col gap-1">
             <span className="text-[#81be97] text-lg">💵</span>
-            <span className="font-bold text-slate-200">All players start with Rs 1,500</span>
-            <span className="text-[10px] text-slate-400 leading-tight">Every player begins with Rs 1,500 starting money.</span>
+            <span className="font-bold text-slate-200">Start with 1,500</span>
+            <span className="text-[10px] text-slate-400 leading-tight">Every player begins with 1,500 starting cash.</span>
           </div>
 
           <div className="bg-[#1c182c] border border-[#2e284a] p-3 rounded-2xl flex flex-col gap-1">
             <span className="text-[#ffa1a1] text-lg">🎲</span>
-            <span className="font-bold text-slate-200">Roll the dice to move</span>
-            <span className="text-[10px] text-slate-400 leading-tight">On your turn, roll dice to move forward. Got doubles? Roll again!</span>
+            <span className="font-bold text-slate-200">Roll dice to move</span>
+            <span className="text-[10px] text-slate-400 leading-tight">Roll dice on your turn. Got doubles? Roll again!</span>
           </div>
 
           <div className="bg-[#1c182c] border border-[#2e284a] p-3 rounded-2xl flex flex-col gap-1">
             <span className="text-[#ffdba1] text-lg">🏢</span>
-            <span className="font-bold text-slate-200">Purchase valuable properties</span>
-            <span className="text-[10px] text-slate-400 leading-tight">Buy Pakistani city plots. Rivals pay rent when landing on your plots.</span>
+            <span className="font-bold text-slate-200">Buy properties</span>
+            <span className="text-[10px] text-slate-400 leading-tight">Buy city plots. Rivals pay rent when landing on your plots.</span>
           </div>
 
           <div className="bg-[#1c182c] border border-[#2e284a] p-3 rounded-2xl flex flex-col gap-1">
             <span className="text-[#d49cff] text-lg">🏨</span>
-            <span className="font-bold text-slate-200">Build houses and hotels</span>
-            <span className="text-[10px] text-slate-400 leading-tight">Own a full set? Build houses and hotels to maximize rent and bankrupt rivals!</span>
+            <span className="font-bold text-slate-200">Build houses & hotels</span>
+            <span className="text-[10px] text-slate-400 leading-tight">Complete a city set to build houses and hotels!</span>
           </div>
         </div>
       </footer>

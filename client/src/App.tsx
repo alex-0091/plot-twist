@@ -99,21 +99,20 @@ export function App() {
   return (
     <div className="h-[100dvh] max-h-[100dvh] overflow-hidden flex flex-col justify-between bg-[#130f1d] text-slate-100 select-none">
       {/* Top Navbar */}
-      <header className="w-full h-12 bg-[#1c182c]/95 border-b border-[#2e284a] px-3 sm:px-4 flex items-center justify-between z-30 shadow-md backdrop-blur-md shrink-0">
+      <header className="w-full h-11 sm:h-12 bg-[#1c182c]/95 border-b border-[#2e284a] px-2.5 sm:px-4 flex items-center justify-between z-30 shadow-md backdrop-blur-md shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-xl">🇵🇰</span>
           <div>
-            <h1 className="font-black text-sm sm:text-base tracking-wider text-white leading-none">
+            <h1 className="font-black text-xs sm:text-base tracking-wider text-white leading-none">
               PLOT TWIST
             </h1>
-            <span className="text-[9px] text-[#b1b2f2] font-semibold block leading-none mt-0.5">
-              Room: <strong className="text-amber-400 font-mono">{gameState.roomCode}</strong>
+            <span className="text-[8px] sm:text-[9px] text-[#b1b2f2] font-semibold block leading-none mt-0.5 font-mono">
+              Room: <strong className="text-amber-400">{gameState.roomCode}</strong>
             </span>
           </div>
         </div>
 
         {/* Center Turn Status Indicator */}
-        <div className="flex items-center gap-2 text-xs bg-[#130f1d] px-3 py-1 rounded-full border border-[#2e284a] shadow-inner">
+        <div className="flex items-center gap-1.5 text-[11px] sm:text-xs bg-[#130f1d] px-2.5 sm:px-3 py-1 rounded-full border border-[#2e284a] shadow-inner">
           <span className="text-slate-400 hidden sm:inline">Turn {gameState.turnNumber} •</span>
           <span className="text-[#81be97] font-bold flex items-center gap-1">
             <span>Turn:</span>
@@ -124,19 +123,20 @@ export function App() {
         </div>
 
         {/* Right Header Controls */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Mobile Drawer Triggers */}
           <button
             onClick={() => setMobileDrawer(mobileDrawer === 'PLAYERS' ? 'NONE' : 'PLAYERS')}
-            className="lg:hidden px-2.5 py-1 bg-[#130f1d] hover:bg-[#26213b] text-slate-200 text-xs font-bold rounded-lg border border-[#2e284a]"
+            className="lg:hidden px-2 py-1 bg-[#130f1d] hover:bg-[#26213b] text-slate-200 text-xs font-bold rounded-lg border border-[#2e284a] flex items-center gap-1"
             title="View Tycoons"
           >
-            👥 ({gameState.players.length})
+            <span>👥</span>
+            <span>({gameState.players.length})</span>
           </button>
 
           <button
             onClick={() => setMobileDrawer(mobileDrawer === 'LOGS' ? 'NONE' : 'LOGS')}
-            className="lg:hidden px-2.5 py-1 bg-[#130f1d] hover:bg-[#26213b] text-slate-200 text-xs font-bold rounded-lg border border-[#2e284a]"
+            className="lg:hidden px-2 py-1 bg-[#130f1d] hover:bg-[#26213b] text-slate-200 text-xs font-bold rounded-lg border border-[#2e284a]"
             title="View Game Log"
           >
             📜
@@ -145,7 +145,7 @@ export function App() {
           <button
             onClick={() => setShowRulesModal(true)}
             className="px-2 py-1 bg-[#130f1d] hover:bg-[#26213b] text-[#b1b2f2] text-xs font-bold rounded-lg border border-[#2e284a] flex items-center gap-1"
-            title="Inspect Match Rules"
+            title="Inspect Rules"
           >
             <span>📋</span>
             <span className="hidden sm:inline">Rules</span>
@@ -153,7 +153,7 @@ export function App() {
 
           <button
             onClick={handleToggleMute}
-            className="p-1.5 sm:p-2 bg-[#130f1d] hover:bg-[#26213b] rounded-lg text-xs border border-[#2e284a] transition-colors"
+            className="p-1 sm:p-1.5 bg-[#130f1d] hover:bg-[#26213b] rounded-lg text-xs border border-[#2e284a] transition-colors"
             title={isMuted ? 'Unmute Sound' : 'Mute Sound'}
           >
             {isMuted ? '🔇' : '🔊'}
@@ -169,7 +169,7 @@ export function App() {
 
           <button
             onClick={leaveRoom}
-            className="px-2.5 py-1 bg-[#130f1d] hover:bg-red-950/80 text-slate-300 hover:text-red-300 font-bold text-xs rounded-lg border border-[#2e284a]"
+            className="px-2 py-1 bg-[#130f1d] hover:bg-red-950/80 text-slate-300 hover:text-red-300 font-bold text-xs rounded-lg border border-[#2e284a]"
           >
             Exit
           </button>
@@ -177,7 +177,7 @@ export function App() {
       </header>
 
       {/* Main Board & SidePanel Area (Fits 100% Viewport) */}
-      <main className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center p-1 sm:p-3 gap-3 overflow-hidden">
+      <main className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center p-1 sm:p-2.5 gap-2.5 overflow-hidden">
         {/* Dynamic Scaling Board */}
         <div className="flex-1 w-full h-full flex items-center justify-center overflow-hidden">
           <Board
@@ -188,7 +188,7 @@ export function App() {
           />
         </div>
 
-        {/* Desktop SidePanel (Leaderboard, Logs, Chat) */}
+        {/* Desktop SidePanel */}
         <div className="hidden lg:block w-80 h-full shrink-0">
           <SidePanel
             gameState={gameState}
@@ -227,7 +227,7 @@ export function App() {
           <div className="bg-[#1c182c] border-t-2 border-[#7053ff] rounded-t-3xl max-h-[75vh] flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom duration-200">
             <div className="p-3 bg-[#130f1d] flex items-center justify-between border-b border-[#2e284a]">
               <span className="text-xs font-black uppercase text-[#d49cff]">
-                {mobileDrawer === 'PLAYERS' ? '👥 TYCOONS & ASSETS' : '📜 EVENT FEED & BANTER'}
+                {mobileDrawer === 'PLAYERS' ? '👥 PLAYERS & ASSETS' : '📜 EVENT FEED & CHAT'}
               </span>
               <button
                 onClick={() => setMobileDrawer('NONE')}

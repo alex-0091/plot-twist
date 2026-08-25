@@ -22,8 +22,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
         <h1 className="text-2xl sm:text-3xl font-black text-white">
           THE LAST TYCOON STANDING!
         </h1>
-        <p className="text-xs font-urdu text-amber-300 text-lg my-0.5">
-          بادشاہ سلامت! مبارک ہو!
+        <p className="text-xs text-amber-300 font-bold tracking-wide mt-1">
+          CHAMPION OF THE BOARD!
         </p>
 
         {winner && (
@@ -36,8 +36,8 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
             </div>
             <h2 className="text-xl font-black text-white">{winner.name}</h2>
             <div className="flex items-center gap-3 text-xs mt-1">
-              <span className="text-[#81be97] font-black text-sm">
-                💰 Rs {winner.cash.toLocaleString()}
+              <span className="text-[#81be97] font-black text-sm font-mono">
+                💰 {winner.cash.toLocaleString()}
               </span>
               <span className="text-slate-500">•</span>
               <span className="text-slate-300 font-bold">
@@ -49,7 +49,6 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({
 
         <div className="space-y-1 text-xs text-slate-400 mb-5">
           <p>Turns Played: <strong className="text-slate-200">{gameState.turnNumber}</strong></p>
-          <p className="italic text-slate-500">"Plot gaya. Paisa gaya. Lekin winner ban gaya!"</p>
         </div>
 
         <button
