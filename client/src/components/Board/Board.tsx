@@ -1,6 +1,5 @@
 import React from 'react';
-import { GameState } from '../../types';
-import { BOARD_SPACES } from '../../types';
+import { GameState, Player, BOARD_SPACES } from '../../types';
 import { SpaceTile } from './SpaceTile';
 import { CornerTile } from './CornerTile';
 import { CenterBoard } from './CenterBoard';
@@ -8,13 +7,29 @@ import { CenterBoard } from './CenterBoard';
 interface BoardProps {
   gameState: GameState;
   myPlayerId: string | null;
+  myPlayer: Player | null;
+  isMyTurn: boolean;
   onSelectProperty: (spaceIndex: number) => void;
+  onRollDice: () => void;
+  onBuyProperty: () => void;
+  onDeclineBuy: () => void;
+  onPayBail: () => void;
+  onUseJailCard: () => void;
+  onEndTurn: () => void;
 }
 
 export const Board: React.FC<BoardProps> = ({
   gameState,
   myPlayerId,
+  myPlayer,
+  isMyTurn,
   onSelectProperty,
+  onRollDice,
+  onBuyProperty,
+  onDeclineBuy,
+  onPayBail,
+  onUseJailCard,
+  onEndTurn,
 }) => {
   const currentPlayer = gameState.players[gameState.currentPlayerIndex] || null;
 
@@ -32,8 +47,8 @@ export const Board: React.FC<BoardProps> = ({
     <div
       className="relative aspect-square p-0.5 sm:p-1 bg-[#17112b] rounded-2xl border border-[#382c66] shadow-2xl flex items-center justify-center select-none shrink-0"
       style={{
-        maxHeight: 'min(calc(100dvh - 105px), calc(100vw - 10px))',
-        maxWidth: 'min(calc(100dvh - 105px), calc(100vw - 10px))',
+        maxHeight: 'min(calc(100dvh - 90px), calc(100vw - 12px))',
+        maxWidth: 'min(calc(100dvh - 90px), calc(100vw - 12px))',
         width: '100%',
         height: '100%',
       }}
@@ -92,7 +107,14 @@ export const Board: React.FC<BoardProps> = ({
           <CenterBoard
             gameState={gameState}
             currentPlayer={currentPlayer}
-            myPlayerId={myPlayerId}
+            myPlayer={myPlayer}
+            isMyTurn={isMyTurn}
+            onRollDice={onRollDice}
+            onBuyProperty={onBuyProperty}
+            onDeclineBuy={onDeclineBuy}
+            onPayBail={onPayBail}
+            onUseJailCard={onUseJailCard}
+            onEndTurn={onEndTurn}
           />
         </div>
 
