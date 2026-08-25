@@ -7,6 +7,7 @@ import { SupabaseGameSync } from '../services/supabaseGameSync';
 import { BOARD_SPACES, CITY_GROUP_MEMBERS, TRANSPORT_SPACES, UTILITY_SPACES } from '../types';
 import { BOT_PERSONALITIES } from '../types';
 import { ALL_CARDS } from '../types';
+import { BotEngine } from '../services/botEngine';
 
 const SOCKET_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
 
@@ -79,7 +80,6 @@ export function useGameSocket() {
     });
 
     s.on('connect', () => {
-      console.log('Connected to PLOT TWIST local server:', s.id);
       setConnected(true);
     });
 
@@ -129,7 +129,6 @@ export function useGameSocket() {
           SupabaseGameSync.subscribeToRoom(res.roomCode, handleStateChange);
           return true;
         } else {
-          alert(res.error || 'Failed to create room in Supabase');
           return false;
         }
       }
@@ -143,7 +142,6 @@ export function useGameSocket() {
             handleStateChange(res.state);
             resolve(true);
           } else {
-            alert(res?.error || 'Failed to create room');
             resolve(false);
           }
         });
@@ -175,15 +173,15 @@ export function useGameSocket() {
       };
 
       if (isSupabaseConfigured) {
-        const res = await SupabaseGameSync.joinRoom(roomCode, newPlayer);
+        const res = await SupabaseGameSync.joinRoom(roomCode, newPlayer, myPlayerId);
         if (res.success && res.state) {
-          setMyPlayerId(pId);
-          localStorage.setItem('pt_player_id', pId);
+          const finalId = res.reclaimedPlayerId || pId;
+          setMyPlayerId(finalId);
+          localStorage.setItem('pt_player_id', finalId);
           handleStateChange(res.state);
           SupabaseGameSync.subscribeToRoom(roomCode, handleStateChange);
           return true;
         } else {
-          alert(res.error || 'Room not found');
           return false;
         }
       }
@@ -197,13 +195,12 @@ export function useGameSocket() {
             handleStateChange(res.state);
             resolve(true);
           } else {
-            alert(res?.error || 'Failed to join room');
             resolve(false);
           }
         });
       });
     },
-    [socket, handleStateChange]
+    [socket, myPlayerId, handleStateChange]
   );
 
   const addBot = useCallback(() => {
@@ -240,7 +237,7 @@ export function useGameSocket() {
       state.logs.push({
         id: `log_${Date.now()}`,
         timestamp: Date.now(),
-        text: `${botPlayer.name} joined the room!`,
+        text: `🤖 ${botPlayer.name} joined the room!`,
         type: 'CHAT',
       });
       return state;
@@ -300,6 +297,76 @@ export function useGameSocket() {
       return state;
     });
   }, [gameState, myPlayerId, socket, syncState]);
+
+  // Execute a card effect
+  const executeCardEffect = (card: Card, player: Player, state: GameState) => {
+    let houseCount = 0;
+    let hotelCount = 0;
+    player.properties.forEach((pIdx) => {
+      const ps = state.properties[pIdx];
+      if (ps?.hasHotel) hotelCount++;
+      else if (ps?.houses) houseCount += ps.houses;
+    });
+
+    switch (card.actionType) {
+      case 'MONEY_ADD':
+        player.cash += card.amount || 100;
+        break;
+      case 'MONEY_SUBTRACT':
+      case 'PAY_TO_BANK':
+        player.cash -= card.amount || 50;
+        break;
+      case 'COLLECT_FROM_ALL': {
+        const perPlayer = card.amount || 50;
+        state.players.forEach((other) => {
+          if (other.id !== player.id && !other.isBankrupt) {
+            other.cash -= perPlayer;
+            player.cash += perPlayer;
+          }
+        });
+        break;
+      }
+      case 'PAY_TO_ALL': {
+        const perPlayer = card.amount || 20;
+        state.players.forEach((other) => {
+          if (other.id !== player.id && !other.isBankrupt) {
+            player.cash -= perPlayer;
+            other.cash += perPlayer;
+          }
+        });
+        break;
+      }
+      case 'PER_BUILDING_ASSESSMENT': {
+        const perH = card.perHouseCost || 25;
+        const perHotel = card.perHotelCost || 100;
+        const totalTax = houseCount * perH + hotelCount * perHotel;
+        player.cash -= totalTax;
+        state.logs.push({
+          id: `log_${Date.now()}_tax`,
+          timestamp: Date.now(),
+          text: `🏘️ ${player.name} owns ${houseCount} houses & ${hotelCount} hotels. Paid Rs ${totalTax}!`,
+          type: 'RENT',
+        });
+        break;
+      }
+      case 'GET_OUT_OF_JAIL':
+        player.getOutOfJailCards += 1;
+        break;
+      case 'GO_TO_JAIL':
+        player.position = 10;
+        player.inJail = true;
+        player.jailTurns = 0;
+        break;
+      case 'MOVE_TO':
+        if (card.targetPosition !== undefined) {
+          if (card.targetPosition === 0) {
+            player.cash += state.settings.salaryOnStart;
+          }
+          player.position = card.targetPosition;
+        }
+        break;
+    }
+  };
 
   const rollDice = useCallback(() => {
     if (!gameState || !myPlayerId) return;
@@ -361,19 +428,26 @@ export function useGameSocket() {
       }
 
       const sp = BOARD_SPACES[newPos];
+
       // Rent check
       if (['PROPERTY', 'TRANSPORT', 'UTILITY'].includes(sp.type)) {
         const ps = state.properties[sp.index];
         if (ps && ps.ownerId && ps.ownerId !== curP.id && !ps.isMortgaged) {
           const owner = state.players.find((p) => p.id === ps.ownerId);
           if (owner && !owner.isBankrupt) {
-            const rent = sp.rent || 15;
-            curP.cash -= rent;
-            owner.cash += rent;
+            let rent = sp.rent || 15;
+            if (ps.hasHotel) rent = sp.rentWithHotel || rent * 5;
+            else if (ps.houses === 4) rent = sp.rentWith4Houses || rent * 4;
+            else if (ps.houses === 3) rent = sp.rentWith3Houses || rent * 3;
+            else if (ps.houses === 2) rent = sp.rentWith2Houses || rent * 2;
+            else if (ps.houses === 1) rent = sp.rentWith1House || rent * 1.5;
+
+            curP.cash -= Math.floor(rent);
+            owner.cash += Math.floor(rent);
             state.logs.push({
               id: `log_${Date.now()}_rent`,
               timestamp: Date.now(),
-              text: `💸 ${curP.name} paid Rs ${rent} rent to ${owner.name} for ${sp.name}!`,
+              text: `💸 ${curP.name} paid Rs ${Math.floor(rent)} rent to ${owner.name} for ${sp.name}!`,
               type: 'RENT',
             });
           }
@@ -396,6 +470,18 @@ export function useGameSocket() {
           timestamp: Date.now(),
           text: `📋 ${curP.name} paid Rs ${tax} tax (${sp.name})!`,
           type: 'RENT',
+        });
+      } else if (sp.type.startsWith('CARD_')) {
+        const deckType = sp.type === 'CARD_SCENE_ON_HAI' ? 'SCENE_ON_HAI' : 'PAKISTAN_ZINDABAD';
+        const deck = ALL_CARDS.filter((c) => c.deck === deckType);
+        const card = deck[Math.floor(Math.random() * deck.length)];
+        state.lastCardDrawn = card;
+        executeCardEffect(card, curP, state);
+        state.logs.push({
+          id: `log_${Date.now()}_card`,
+          timestamp: Date.now(),
+          text: `🎴 ${curP.name} drew "${card.title}": ${card.actionText}`,
+          type: 'CARD',
         });
       }
 
@@ -615,9 +701,26 @@ export function useGameSocket() {
       state.hasMovedThisTurn = false;
       state.consecutiveDoubles = 0;
       let nextIdx = (state.currentPlayerIndex + 1) % state.players.length;
-      while (state.players[nextIdx].isBankrupt) {
+      let attempts = 0;
+      while (state.players[nextIdx].isBankrupt && attempts < state.players.length) {
         nextIdx = (nextIdx + 1) % state.players.length;
+        attempts++;
       }
+
+      // Check Winner
+      const activePlayers = state.players.filter((p) => !p.isBankrupt);
+      if (activePlayers.length === 1) {
+        state.status = 'GAME_OVER';
+        state.winnerId = activePlayers[0].id;
+        state.logs.push({
+          id: `log_${Date.now()}_win`,
+          timestamp: Date.now(),
+          text: `👑 ${activePlayers[0].name} OWNS PAKISTAN! VICTORY!`,
+          type: 'CHAT',
+        });
+        return state;
+      }
+
       state.currentPlayerIndex = nextIdx;
       state.turnNumber += 1;
       const nextP = state.players[nextIdx];
@@ -630,6 +733,183 @@ export function useGameSocket() {
       return state;
     });
   }, [gameState, myPlayerId, socket, syncState]);
+
+  // ==========================================
+  // AUTOMATED BOT TURN ORCHESTRATOR
+  // ==========================================
+  const isHost = Boolean(gameState && myPlayerId && gameState.hostId === myPlayerId);
+
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'PLAYING') return;
+    const curP = gameState.players[gameState.currentPlayerIndex];
+    if (!curP || !curP.isBot || curP.isBankrupt) return;
+
+    if (!isHost) return;
+
+    const timer = setTimeout(() => {
+      syncState((state) => {
+        const bot = state.players[state.currentPlayerIndex];
+        if (!bot || !bot.isBot || bot.isBankrupt) return state;
+
+        // 1. Jail decision
+        if (bot.inJail) {
+          if (BotEngine.shouldPayBail(bot, state)) {
+            bot.cash -= state.settings.jailBail;
+            bot.inJail = false;
+            bot.jailTurns = 0;
+          } else if (bot.getOutOfJailCards > 0) {
+            bot.getOutOfJailCards -= 1;
+            bot.inJail = false;
+            bot.jailTurns = 0;
+          }
+        }
+
+        // 2. Roll dice if hasn't rolled
+        if (!state.diceRolled) {
+          const d1 = Math.floor(Math.random() * 6) + 1;
+          const d2 = Math.floor(Math.random() * 6) + 1;
+          state.lastDice = [d1, d2];
+          state.diceRolled = true;
+          const total = d1 + d2;
+          const isDouble = d1 === d2;
+
+          state.logs.push({
+            id: `log_${Date.now()}_bot`,
+            timestamp: Date.now(),
+            text: `🎲 ${bot.name} rolled [${d1}, ${d2}] = ${total}${isDouble ? ' (DOUBLES!)' : ''}`,
+            type: 'ROLL',
+          });
+
+          if (bot.inJail) {
+            if (isDouble) {
+              bot.inJail = false;
+              bot.jailTurns = 0;
+              bot.position = (bot.position + total) % 40;
+            } else {
+              bot.jailTurns += 1;
+            }
+          } else {
+            const oldPos = bot.position;
+            const newPos = (oldPos + total) % 40;
+            bot.position = newPos;
+
+            // Passed START
+            if (newPos < oldPos && oldPos !== 0) {
+              bot.cash += state.settings.salaryOnStart;
+              state.logs.push({
+                id: `log_${Date.now()}_sal_bot`,
+                timestamp: Date.now(),
+                text: `💵 ${bot.name} passed START and collected Rs ${state.settings.salaryOnStart}!`,
+                type: 'MOVE',
+              });
+            }
+
+            const sp = BOARD_SPACES[newPos];
+            // Rent
+            if (['PROPERTY', 'TRANSPORT', 'UTILITY'].includes(sp.type)) {
+              const ps = state.properties[sp.index];
+              if (ps && ps.ownerId && ps.ownerId !== bot.id && !ps.isMortgaged) {
+                const owner = state.players.find((p) => p.id === ps.ownerId);
+                if (owner && !owner.isBankrupt) {
+                  let rent = sp.rent || 15;
+                  if (ps.hasHotel) rent = sp.rentWithHotel || rent * 5;
+                  else if (ps.houses) rent = sp.rentWith1House || rent * 1.5;
+                  bot.cash -= Math.floor(rent);
+                  owner.cash += Math.floor(rent);
+                }
+              } else if (ps && !ps.ownerId) {
+                // Buy Decision
+                if (BotEngine.shouldBuyProperty(bot, sp.index, state)) {
+                  const price = sp.price || 100;
+                  bot.cash -= price;
+                  ps.ownerId = bot.id;
+                  bot.properties.push(sp.index);
+                  state.logs.push({
+                    id: `log_${Date.now()}_buy_bot`,
+                    timestamp: Date.now(),
+                    text: `🏠 ${bot.name} bought ${sp.name} for Rs ${price}!`,
+                    type: 'BUY',
+                  });
+                }
+              }
+            } else if (sp.type === 'GO_TO_JAIL') {
+              bot.position = 10;
+              bot.inJail = true;
+              bot.jailTurns = 0;
+            } else if (sp.type === 'TAX') {
+              bot.cash -= sp.taxAmount || 100;
+            } else if (sp.type.startsWith('CARD_')) {
+              const deckType = sp.type === 'CARD_SCENE_ON_HAI' ? 'SCENE_ON_HAI' : 'PAKISTAN_ZINDABAD';
+              const deck = ALL_CARDS.filter((c) => c.deck === deckType);
+              const card = deck[Math.floor(Math.random() * deck.length)];
+              state.lastCardDrawn = card;
+              executeCardEffect(card, bot, state);
+            }
+
+            // Check Building
+            const buildableIdx = BotEngine.findBuildableProperty(bot, state);
+            if (buildableIdx !== null) {
+              const bProp = state.properties[buildableIdx];
+              const bSpace = BOARD_SPACES[buildableIdx];
+              if (bProp && bProp.houses === 4 && state.availableHotels > 0) {
+                bot.cash -= bSpace.hotelCost || 100;
+                bProp.houses = 0;
+                bProp.hasHotel = true;
+                state.availableHotels -= 1;
+                state.availableHouses += 4;
+              } else if (bProp && state.availableHouses > 0) {
+                bot.cash -= bSpace.houseCost || 50;
+                bProp.houses += 1;
+                state.availableHouses -= 1;
+              }
+            }
+
+            // Bankruptcy check
+            if (bot.cash < 0) {
+              bot.isBankrupt = true;
+              bot.properties.forEach((pIdx) => {
+                state.properties[pIdx].ownerId = null;
+                state.properties[pIdx].houses = 0;
+                state.properties[pIdx].hasHotel = false;
+                state.properties[pIdx].isMortgaged = false;
+              });
+              bot.properties = [];
+              state.logs.push({
+                id: `log_${Date.now()}_bankrupt`,
+                timestamp: Date.now(),
+                text: `💀 ${bot.name} went BANKRUPT! All plots returned to Bank.`,
+                type: 'BANKRUPT',
+              });
+            }
+          }
+
+          // 3. End bot turn automatically after brief delay
+          state.diceRolled = false;
+          state.hasMovedThisTurn = false;
+          let nextIdx = (state.currentPlayerIndex + 1) % state.players.length;
+          let attempts = 0;
+          while (state.players[nextIdx].isBankrupt && attempts < state.players.length) {
+            nextIdx = (nextIdx + 1) % state.players.length;
+            attempts++;
+          }
+
+          state.currentPlayerIndex = nextIdx;
+          state.turnNumber += 1;
+          const nextP = state.players[nextIdx];
+          state.logs.push({
+            id: `log_${Date.now()}_next`,
+            timestamp: Date.now(),
+            text: `👉 Turn ${state.turnNumber}: ${nextP.name}'s turn!`,
+            type: 'ROLL',
+          });
+        }
+
+        return state;
+      });
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, [gameState?.currentPlayerIndex, gameState?.status, gameState?.turnNumber, isHost, syncState]);
 
   const placeAuctionBid = useCallback(
     (amount: number) => {
@@ -678,9 +958,36 @@ export function useGameSocket() {
             if (res?.success) setShowTradeModal(false);
           }
         );
+        return;
       }
+
+      syncState((state) => {
+        const tradeId = `trade_${Date.now()}`;
+        state.activeTrade = {
+          id: tradeId,
+          fromPlayerId: myPlayerId,
+          toPlayerId,
+          offeredCash,
+          offeredProperties,
+          offeredJailCards,
+          requestedCash,
+          requestedProperties,
+          requestedJailCards,
+          status: 'PENDING',
+        };
+        const sender = state.players.find((p) => p.id === myPlayerId);
+        const target = state.players.find((p) => p.id === toPlayerId);
+        state.logs.push({
+          id: `log_${Date.now()}_trade`,
+          timestamp: Date.now(),
+          text: `🤝 ${sender?.name} proposed a trade deal to ${target?.name}!`,
+          type: 'CHAT',
+        });
+        return state;
+      });
+      setShowTradeModal(false);
     },
-    [socket, gameState, myPlayerId]
+    [socket, gameState, myPlayerId, syncState]
   );
 
   const respondTrade = useCallback(
@@ -688,9 +995,51 @@ export function useGameSocket() {
       if (!gameState) return;
       if (socket && !isSupabaseConfigured) {
         socket.emit('respond_trade', { roomCode: gameState.roomCode, offerId, accept });
+        return;
       }
+
+      syncState((state) => {
+        if (!state.activeTrade || state.activeTrade.id !== offerId) return state;
+        const trade = state.activeTrade;
+        const p1 = state.players.find((p) => p.id === trade.fromPlayerId);
+        const p2 = state.players.find((p) => p.id === trade.toPlayerId);
+
+        if (accept && p1 && p2) {
+          p1.cash = p1.cash - trade.offeredCash + trade.requestedCash;
+          p2.cash = p2.cash - trade.requestedCash + trade.offeredCash;
+
+          trade.offeredProperties.forEach((idx) => {
+            p1.properties = p1.properties.filter((i) => i !== idx);
+            p2.properties.push(idx);
+            state.properties[idx].ownerId = p2.id;
+          });
+
+          trade.requestedProperties.forEach((idx) => {
+            p2.properties = p2.properties.filter((i) => i !== idx);
+            p1.properties.push(idx);
+            state.properties[idx].ownerId = p1.id;
+          });
+
+          state.logs.push({
+            id: `log_${Date.now()}_taccept`,
+            timestamp: Date.now(),
+            text: `✅ Trade accepted between ${p1.name} and ${p2.name}! Registry transferred.`,
+            type: 'BUY',
+          });
+        } else if (p1 && p2) {
+          state.logs.push({
+            id: `log_${Date.now()}_tdec`,
+            timestamp: Date.now(),
+            text: `✕ ${p2.name} declined trade offer from ${p1.name}.`,
+            type: 'CHAT',
+          });
+        }
+
+        state.activeTrade = null;
+        return state;
+      });
     },
-    [socket, gameState]
+    [socket, gameState, syncState]
   );
 
   const sendChat = useCallback(
@@ -721,7 +1070,6 @@ export function useGameSocket() {
 
   const myPlayer = gameState?.players.find((p) => p.id === myPlayerId) || null;
   const isMyTurn = Boolean(gameState && myPlayer && gameState.players[gameState.currentPlayerIndex]?.id === myPlayerId);
-  const isHost = Boolean(gameState && myPlayer && gameState.hostId === myPlayerId);
 
   return {
     socket,

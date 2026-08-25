@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { GameState, Player, TradeOffer, BOARD_SPACES } from '../../types';
+import { GameState, Player, BOARD_SPACES, CITY_GROUP_COLORS } from '../../types';
+import { sounds } from '../../audio/SoundEffects';
 
 interface TradeModalProps {
   isOpen: boolean;
@@ -28,257 +29,320 @@ export const TradeModal: React.FC<TradeModalProps> = ({
 }) => {
   if (!isOpen || !myPlayer) return null;
 
+  // Potential trade partners (all non-bankrupt players except self)
   const otherPlayers = gameState.players.filter((p) => p.id !== myPlayer.id && !p.isBankrupt);
-  const [selectedTargetId, setSelectedTargetId] = useState<string>(otherPlayers[0]?.id || '');
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string>(
+    otherPlayers[0]?.id || ''
+  );
 
-  const targetPlayer = gameState.players.find((p) => p.id === selectedTargetId) || otherPlayers[0];
+  const partner = gameState.players.find((p) => p.id === selectedPartnerId) || otherPlayers[0];
 
+  // Trade offer state
   const [offeredCash, setOfferedCash] = useState<number>(0);
-  const [offeredProperties, setOfferedProperties] = useState<number[]>([]);
-  const [offeredJailCards, setOfferedJailCards] = useState<number>(0);
-
   const [requestedCash, setRequestedCash] = useState<number>(0);
-  const [requestedProperties, setRequestedProperties] = useState<number[]>([]);
-  const [requestedJailCards, setRequestedJailCards] = useState<number>(0);
+  const [offeredProps, setOfferedProps] = useState<number[]>([]);
+  const [requestedProps, setRequestedProps] = useState<number[]>([]);
 
-  // Incoming trade check
-  const incomingTrade = gameState.activeTrade && gameState.activeTrade.toPlayerId === myPlayer.id ? gameState.activeTrade : null;
-  const outgoingTrade = gameState.activeTrade && gameState.activeTrade.fromPlayerId === myPlayer.id ? gameState.activeTrade : null;
-  const incomingTrader = incomingTrade ? gameState.players.find((p) => p.id === incomingTrade.fromPlayerId) : null;
+  // Check incoming active trade offer for me
+  const incomingTrade =
+    gameState.activeTrade && gameState.activeTrade.toPlayerId === myPlayer.id
+      ? gameState.activeTrade
+      : null;
 
-  const handleToggleOfferedProp = (idx: number) => {
-    setOfferedProperties((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+  const sender = incomingTrade
+    ? gameState.players.find((p) => p.id === incomingTrade.fromPlayerId)
+    : null;
+
+  const handleToggleOfferedProp = (propIdx: number) => {
+    sounds.playCash();
+    setOfferedProps((prev) =>
+      prev.includes(propIdx) ? prev.filter((i) => i !== propIdx) : [...prev, propIdx]
+    );
   };
 
-  const handleToggleRequestedProp = (idx: number) => {
-    setRequestedProperties((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]));
+  const handleToggleRequestedProp = (propIdx: number) => {
+    sounds.playCash();
+    setRequestedProps((prev) =>
+      prev.includes(propIdx) ? prev.filter((i) => i !== propIdx) : [...prev, propIdx]
+    );
   };
 
-  const handlePropose = () => {
-    if (!targetPlayer) return;
+  const handleSendTrade = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!partner) return;
+    sounds.playCash();
     onCreateTradeOffer(
-      targetPlayer.id,
+      partner.id,
       offeredCash,
-      offeredProperties,
-      offeredJailCards,
+      offeredProps,
+      0,
       requestedCash,
-      requestedProperties,
-      requestedJailCards
+      requestedProps,
+      0
     );
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border-2 border-indigo-500/50 rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 select-none">
+      <div className="bg-slate-900 border-2 border-indigo-500/60 rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="bg-indigo-950/80 border-b border-indigo-500/40 p-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-indigo-950 via-slate-950 to-indigo-950 p-3 sm:p-4 border-b border-indigo-500/40 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🤝</span>
             <div>
-              <h2 className="text-lg font-black text-white">PAKISTANI PROPERTY TRADING</h2>
-              <p className="text-xs text-indigo-300">Plots, Cash, and Sifarish Exchange</p>
+              <h2 className="text-sm sm:text-base font-black text-white">TRADE NEGOTIATION</h2>
+              <p className="text-[10px] text-indigo-300">
+                Plot Twist Property & Cash Exchange • سودا طے کریں
+              </p>
             </div>
           </div>
+
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white bg-slate-800 rounded-full w-8 h-8 flex items-center justify-center font-bold"
+            className="text-slate-400 hover:text-white bg-slate-800 rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold"
           >
             ✕
           </button>
         </div>
 
-        {/* Incoming Trade Alert Banner */}
-        {incomingTrade && (
-          <div className="bg-amber-950/80 border-b border-amber-500/50 p-3 flex items-center justify-between">
-            <div className="text-xs">
-              <span className="font-bold text-amber-300">⚡ Incoming Trade Offer from {incomingTrader?.name}!</span>
-              <p className="text-slate-300">
-                Offered: Rs {incomingTrade.offeredCash} + {incomingTrade.offeredProperties.length} plots | Wants: Rs {incomingTrade.requestedCash} + {incomingTrade.requestedProperties.length} plots
-              </p>
+        {/* 1. Incoming Trade Offer Banner (if pending) */}
+        {incomingTrade && sender && (
+          <div className="p-4 bg-indigo-950/90 border-b border-indigo-500/50 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-black text-amber-300">
+              <span className="text-lg">📩</span>
+              <span>TRADE PROPOSAL RECEIVED FROM {sender.name.toUpperCase()}!</span>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="grid grid-cols-2 gap-3 text-xs bg-slate-950 p-3 rounded-xl border border-indigo-800">
+              <div>
+                <span className="text-slate-400 block font-bold">They Give You:</span>
+                <span className="text-emerald-400 font-bold">Rs {incomingTrade.offeredCash}</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {incomingTrade.offeredProperties.map((idx) => (
+                    <span
+                      key={idx}
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
+                      style={{ backgroundColor: BOARD_SPACES[idx]?.colorHex || '#475569' }}
+                    >
+                      {BOARD_SPACES[idx]?.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-slate-400 block font-bold">They Want From You:</span>
+                <span className="text-amber-400 font-bold">Rs {incomingTrade.requestedCash}</span>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {incomingTrade.requestedProperties.map((idx) => (
+                    <span
+                      key={idx}
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
+                      style={{ backgroundColor: BOARD_SPACES[idx]?.colorHex || '#475569' }}
+                    >
+                      {BOARD_SPACES[idx]?.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
               <button
                 onClick={() => onRespondTrade(incomingTrade.id, true)}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow"
+                className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow"
               >
-                Accept (Deal Done)
+                ✓ ACCEPT TRADE
               </button>
               <button
                 onClick={() => onRespondTrade(incomingTrade.id, false)}
-                className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg"
+                className="flex-1 py-2 bg-red-800 hover:bg-red-700 text-white font-bold text-xs rounded-xl"
               >
-                Reject
+                ✕ DECLINE
               </button>
             </div>
           </div>
         )}
 
-        {outgoingTrade && (
-          <div className="bg-blue-950/80 border-b border-blue-500/50 p-3 flex items-center justify-between">
-            <span className="text-xs text-blue-200">
-              ⏳ Pending trade offer sent to {gameState.players.find((p) => p.id === outgoingTrade.toPlayerId)?.name}...
-            </span>
-            <button
-              onClick={() => onRespondTrade(outgoingTrade.id, false)}
-              className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-white text-xs rounded"
-            >
-              Cancel Offer
-            </button>
-          </div>
-        )}
-
-        {/* Select Target Player */}
-        <div className="p-4 border-b border-slate-800 bg-slate-950/40">
-          <label className="text-xs font-semibold text-slate-400 block mb-1.5">Trade Partner:</label>
-          <div className="flex items-center gap-2 flex-wrap">
-            {otherPlayers.map((other) => (
-              <button
-                key={other.id}
-                onClick={() => {
-                  setSelectedTargetId(other.id);
-                  setRequestedProperties([]);
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
-                  selectedTargetId === other.id
-                    ? 'bg-indigo-600 text-white ring-2 ring-indigo-400'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                <span>{other.tokenEmoji}</span>
-                <span>{other.name}</span>
-                <span className="text-emerald-400 text-[10px]">(Rs {other.cash})</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 2-Column Trade Area */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-800 flex-1 overflow-y-auto p-4 gap-4">
-          {/* Left: YOU GIVE */}
-          <div className="space-y-3">
-            <h3 className="font-extrabold text-sm text-amber-400 flex items-center gap-1">
-              <span>📤</span>
-              <span>YOU GIVE</span>
-            </h3>
-
-            {/* Cash Input */}
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">
-                Cash (Max: Rs {myPlayer.cash}):
-              </label>
-              <input
-                type="number"
-                min={0}
-                max={myPlayer.cash}
-                value={offeredCash}
-                onChange={(e) => setOfferedCash(Math.max(0, Math.min(myPlayer.cash, Number(e.target.value))))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-emerald-400 font-bold focus:outline-none focus:border-indigo-500"
-              />
+        {/* 2. Create Trade Offer Body */}
+        <div className="p-3 sm:p-5 overflow-y-auto flex-1 space-y-4">
+          {/* Partner Selector */}
+          <div>
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-400 block mb-1">
+              Select Trading Partner:
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {otherPlayers.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setSelectedPartnerId(p.id)}
+                  className={`p-2 rounded-xl border flex items-center gap-2 text-left transition-all ${
+                    selectedPartnerId === p.id
+                      ? 'bg-indigo-950 border-indigo-500 ring-2 ring-indigo-400 text-white'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <span className="text-lg">{p.tokenEmoji}</span>
+                  <div className="truncate">
+                    <span className="font-extrabold text-xs block truncate">{p.name}</span>
+                    <span className="text-[10px] text-emerald-400 font-semibold">
+                      Rs {p.cash.toLocaleString()}
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
+          </div>
 
-            {/* Properties List */}
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Select Properties:</label>
-              <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                {myPlayer.properties.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">You have no plots to trade</p>
-                ) : (
-                  myPlayer.properties.map((idx) => {
-                    const sp = BOARD_SPACES[idx];
-                    const isSelected = offeredProperties.includes(idx);
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => handleToggleOfferedProp(idx)}
-                        className={`p-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer border transition-colors ${
-                          isSelected
-                            ? 'bg-amber-950/60 border-amber-500 text-white'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sp.colorHex || '#64748b' }} />
-                          <span>{sp.name}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400">Rs {sp.price}</span>
-                      </div>
-                    );
-                  })
-                )}
+          {partner && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* LEFT COLUMN: YOU GIVE */}
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">{myPlayer.tokenEmoji}</span>
+                    <span className="font-black text-xs text-white">YOU GIVE</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-bold">
+                    Max: Rs {myPlayer.cash}
+                  </span>
+                </div>
+
+                {/* Cash Slider */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Cash:</span>
+                    <span className="font-black text-amber-300">Rs {offeredCash}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={myPlayer.cash}
+                    step={10}
+                    value={offeredCash}
+                    onChange={(e) => setOfferedCash(Number(e.target.value))}
+                    className="w-full accent-emerald-500"
+                  />
+                </div>
+
+                {/* Properties Selection */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Your Plots ({myPlayer.properties.length}):
+                  </span>
+                  {myPlayer.properties.length === 0 ? (
+                    <span className="text-[10px] text-slate-500 italic block">No plots owned</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                      {myPlayer.properties.map((propIdx) => {
+                        const sp = BOARD_SPACES[propIdx];
+                        const isSelected = offeredProps.includes(propIdx);
+                        return (
+                          <button
+                            key={propIdx}
+                            type="button"
+                            onClick={() => handleToggleOfferedProp(propIdx)}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 border transition-all ${
+                              isSelected
+                                ? 'ring-2 ring-white scale-105 shadow text-white'
+                                : 'opacity-70 hover:opacity-100 text-slate-200'
+                            }`}
+                            style={{ backgroundColor: sp.colorHex || '#475569' }}
+                          >
+                            <span>{isSelected ? '✓' : '+'}</span>
+                            <span>{sp.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: YOU RECEIVE */}
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base">{partner.tokenEmoji}</span>
+                    <span className="font-black text-xs text-white">YOU RECEIVE</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-bold">
+                    Max: Rs {partner.cash}
+                  </span>
+                </div>
+
+                {/* Partner Cash Slider */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">Cash:</span>
+                    <span className="font-black text-amber-300">Rs {requestedCash}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={partner.cash}
+                    step={10}
+                    value={requestedCash}
+                    onChange={(e) => setRequestedCash(Number(e.target.value))}
+                    className="w-full accent-indigo-500"
+                  />
+                </div>
+
+                {/* Partner Properties Selection */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    {partner.name}'s Plots ({partner.properties.length}):
+                  </span>
+                  {partner.properties.length === 0 ? (
+                    <span className="text-[10px] text-slate-500 italic block">No plots owned</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
+                      {partner.properties.map((propIdx) => {
+                        const sp = BOARD_SPACES[propIdx];
+                        const isSelected = requestedProps.includes(propIdx);
+                        return (
+                          <button
+                            key={propIdx}
+                            type="button"
+                            onClick={() => handleToggleRequestedProp(propIdx)}
+                            className={`px-2 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1 border transition-all ${
+                              isSelected
+                                ? 'ring-2 ring-white scale-105 shadow text-white'
+                                : 'opacity-70 hover:opacity-100 text-slate-200'
+                            }`}
+                            style={{ backgroundColor: sp.colorHex || '#475569' }}
+                          >
+                            <span>{isSelected ? '✓' : '+'}</span>
+                            <span>{sp.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Right: YOU RECEIVE */}
-          <div className="space-y-3 pt-3 sm:pt-0">
-            <h3 className="font-extrabold text-sm text-emerald-400 flex items-center gap-1">
-              <span>📥</span>
-              <span>YOU RECEIVE (From {targetPlayer?.name})</span>
-            </h3>
-
-            {/* Requested Cash Input */}
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">
-                Requested Cash (Max: Rs {targetPlayer?.cash || 0}):
-              </label>
-              <input
-                type="number"
-                min={0}
-                max={targetPlayer?.cash || 0}
-                value={requestedCash}
-                onChange={(e) => setRequestedCash(Math.max(0, Math.min(targetPlayer?.cash || 0, Number(e.target.value))))}
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-emerald-400 font-bold focus:outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            {/* Target Player Properties */}
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Request Plots:</label>
-              <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                {!targetPlayer || targetPlayer.properties.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">{targetPlayer?.name || 'Player'} has no plots</p>
-                ) : (
-                  targetPlayer.properties.map((idx) => {
-                    const sp = BOARD_SPACES[idx];
-                    const isSelected = requestedProperties.includes(idx);
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => handleToggleRequestedProp(idx)}
-                        className={`p-2 rounded-lg text-xs font-semibold flex items-center justify-between cursor-pointer border transition-colors ${
-                          isSelected
-                            ? 'bg-emerald-950/60 border-emerald-500 text-white'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-300 hover:bg-slate-800'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: sp.colorHex || '#64748b' }} />
-                          <span>{sp.name}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400">Rs {sp.price}</span>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Footer Propose Button */}
-        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-end gap-3">
+        {/* Footer Review & Send */}
+        <div className="p-3 sm:p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl"
+            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl"
           >
-            Close
+            Cancel
           </button>
+
           <button
-            onClick={handlePropose}
-            disabled={!targetPlayer}
-            className="px-6 py-2 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-500 hover:to-blue-400 text-white text-xs font-black rounded-xl shadow-lg transition-transform hover:scale-105"
+            type="button"
+            onClick={handleSendTrade}
+            disabled={!partner || (offeredCash === 0 && offeredProps.length === 0 && requestedCash === 0 && requestedProps.length === 0)}
+            className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-40 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg transition-transform hover:scale-105"
           >
-            PROPOSE DEAL (سودا بھیجیں)
+            🤝 Send Trade Offer
           </button>
         </div>
       </div>
