@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface Dice3DProps {
   dice: [number, number];
@@ -31,7 +31,7 @@ const DieFace: React.FC<{ value: number; transform: string }> = ({ value, transf
       {/* Glossy top bevel */}
       <div className="absolute inset-1 rounded-lg bg-gradient-to-b from-white/60 to-transparent pointer-events-none" />
 
-      {/* Pips */}
+      {/* Ruby Pips */}
       <div className="relative w-full h-full pointer-events-none">
         {pips.map(([x, y], i) => (
           <span
@@ -61,23 +61,20 @@ const ROTATION_FOR_VALUE: Record<number, { x: number; y: number }> = {
 export const Physical3DCube: React.FC<{ value: number; rolling: boolean; delay?: number }> = ({
   value,
   rolling,
-  delay = 0,
 }) => {
-  const [tumbleRotation, setTumbleRotation] = useState({ x: 0, y: 0, z: 0 });
+  const turnsCountRef = useRef({ x: 0, y: 0 });
+  const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
 
   useEffect(() => {
     if (rolling) {
-      // Random tumbling angles
-      const rx = (Math.floor(Math.random() * 4) + 3) * 360 + ROTATION_FOR_VALUE[value].x;
-      const ry = (Math.floor(Math.random() * 4) + 3) * 360 + ROTATION_FOR_VALUE[value].y;
-      const rz = (Math.floor(Math.random() * 2) - 1) * 360;
-      setTumbleRotation({ x: rx, y: ry, z: rz });
-    } else {
-      setTumbleRotation({
-        x: ROTATION_FOR_VALUE[value].x,
-        y: ROTATION_FOR_VALUE[value].y,
-        z: 0,
-      });
+      // Accumulate forward spins (never spin backward)
+      turnsCountRef.current.x += Math.floor(Math.random() * 2) + 2;
+      turnsCountRef.current.y += Math.floor(Math.random() * 2) + 2;
+
+      const targetX = turnsCountRef.current.x * 360 + ROTATION_FOR_VALUE[value].x;
+      const targetY = turnsCountRef.current.y * 360 + ROTATION_FOR_VALUE[value].y;
+
+      setRotation({ x: targetX, y: targetY, z: 0 });
     }
   }, [rolling, value]);
 
@@ -92,13 +89,12 @@ export const Physical3DCube: React.FC<{ value: number; rolling: boolean; delay?:
         }`}
       />
 
-      {/* 3D Rolling Cube */}
+      {/* 3D Single Forward Rolling Cube */}
       <div
-        className={`relative ${sizeClass} transition-transform duration-700 ease-out`}
+        className={`relative ${sizeClass} transition-transform duration-600 ease-out`}
         style={{
           transformStyle: 'preserve-3d',
-          transform: `rotateX(${tumbleRotation.x}deg) rotateY(${tumbleRotation.y}deg) rotateZ(${tumbleRotation.z}deg)`,
-          transitionDelay: `${delay}ms`,
+          transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)`,
         }}
       >
         {/* Face 1: Front (Z+) */}
@@ -128,15 +124,15 @@ export const Dice3D: React.FC<Dice3DProps> = ({ dice, isRolling, onRollComplete 
     if (isRolling) {
       const timer = setTimeout(() => {
         onRollComplete?.();
-      }, 750);
+      }, 650);
       return () => clearTimeout(timer);
     }
   }, [isRolling, onRollComplete]);
 
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-6 py-2 select-none pointer-events-none">
-      <Physical3DCube value={d1} rolling={isRolling} delay={0} />
-      <Physical3DCube value={d2} rolling={isRolling} delay={100} />
+    <div className="flex items-center justify-center gap-4 sm:gap-6 py-1 select-none pointer-events-none">
+      <Physical3DCube value={d1} rolling={isRolling} />
+      <Physical3DCube value={d2} rolling={isRolling} />
     </div>
   );
 };

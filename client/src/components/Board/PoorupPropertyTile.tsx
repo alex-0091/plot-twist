@@ -29,7 +29,6 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
 
   const cityInfo = space.cityGroup ? CITY_GROUP_COLORS[space.cityGroup] : null;
 
-  // Determine layout orientation
   // TOP & BOTTOM sides: tall tile (flex flex-col)
   // LEFT & RIGHT sides: wide tile (flex flex-row)
   const isHorizontalSide = side === 'TOP' || side === 'BOTTOM';
@@ -59,18 +58,18 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
           }`}
           style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
-          {/* Pakistani City Icon Identifier */}
+          {/* Pakistani City Icon */}
           {cityInfo && (
-            <span className="text-[10px] sm:text-[11px] leading-none filter drop-shadow">
+            <span className="text-[9px] sm:text-[10px] leading-none filter drop-shadow">
               {cityInfo.icon}
             </span>
           )}
 
           {/* Building Count Indicators (Houses / Hotel) */}
           {propertyState?.hasHotel ? (
-            <span className="text-[9px] font-black text-red-100 animate-pulse">🏨</span>
+            <span className="text-[8.5px] font-black text-red-100 animate-pulse">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="text-[7.5px] font-black text-emerald-100 tracking-tighter">
+            <span className="text-[7px] font-black text-emerald-100 tracking-tighter">
               {'🏡'.repeat(propertyState.houses)}
             </span>
           ) : null}
@@ -79,40 +78,40 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
 
       {/* 2. BODY CONTENT (NAME + PRICE + SPECIAL ICONS) */}
       <div
-        className={`flex-1 flex flex-col items-center justify-between p-0.5 sm:p-1 text-center overflow-hidden z-10 ${
+        className={`flex-1 flex flex-col items-center justify-between p-0.5 text-center overflow-hidden z-10 ${
           !isHorizontalSide ? 'w-[76%] justify-center' : 'h-[76%]'
         }`}
       >
         {/* Special space icons (Railways, Utilities, Cards, Taxes) */}
         {!isProperty && (
-          <div className="text-xs sm:text-sm my-auto leading-none filter drop-shadow">
+          <div className="text-[11px] sm:text-xs my-auto leading-none filter drop-shadow">
             {space.icon || (isTransport ? '🚂' : isUtility ? '⚡' : isCard ? '🃏' : '📋')}
           </div>
         )}
 
-        {/* Property / Space Name */}
+        {/* Property / Space Name (Reduced by 1px font size) */}
         <div className="w-full my-auto flex items-center justify-center">
           <span
-            className={`font-black tracking-tight text-slate-100 group-hover:text-amber-300 transition-colors leading-[1.1] text-center ${
+            className={`font-black tracking-tight text-slate-100 group-hover:text-amber-300 transition-colors leading-tight text-center ${
               !isHorizontalSide
-                ? 'text-[7.5px] sm:text-[9px] md:text-[9.5px] line-clamp-2 px-0.5'
-                : 'text-[8px] sm:text-[9px] md:text-[10px] line-clamp-2 px-0.5'
+                ? 'text-[7px] sm:text-[8px] md:text-[8.5px] line-clamp-2 px-0.5'
+                : 'text-[7px] sm:text-[8px] md:text-[8.5px] line-clamp-2 px-0.5'
             }`}
           >
             {space.name}
           </span>
         </div>
 
-        {/* Price / Tax Tag */}
+        {/* Clean Numeric Price Tag */}
         {space.price ? (
           <div className="mt-auto">
-            <span className="text-[7.5px] sm:text-[8.5px] font-black font-mono text-emerald-400 bg-black/40 px-1 py-0.2 rounded">
+            <span className="text-[7px] sm:text-[8px] font-black font-mono text-emerald-400 bg-black/50 px-1 py-0.2 rounded leading-none inline-block">
               {space.price}
             </span>
           </div>
         ) : space.taxAmount ? (
           <div className="mt-auto">
-            <span className="text-[7.5px] sm:text-[8.5px] font-black font-mono text-red-400 bg-black/40 px-1 py-0.2 rounded">
+            <span className="text-[7px] sm:text-[8px] font-black font-mono text-red-400 bg-black/50 px-1 py-0.2 rounded leading-none inline-block">
               {space.taxAmount}
             </span>
           </div>
@@ -139,7 +138,7 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
       {/* 4. MORTGAGE BANNER */}
       {propertyState?.isMortgaged && (
         <div className="absolute inset-0 bg-red-950/80 backdrop-blur-[0.5px] flex items-center justify-center z-30">
-          <span className="text-[6.5px] sm:text-[7.5px] font-black text-red-300 uppercase tracking-wider border border-red-500/80 px-1 py-0.5 rounded bg-black/80 rotate-[-15deg]">
+          <span className="text-[6px] sm:text-[7px] font-black text-red-300 uppercase tracking-wider border border-red-500/80 px-1 py-0.5 rounded bg-black/80 rotate-[-15deg]">
             MORTGAGED
           </span>
         </div>

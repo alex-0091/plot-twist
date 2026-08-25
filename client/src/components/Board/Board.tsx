@@ -45,11 +45,11 @@ export const Board: React.FC<BoardProps> = ({
 
   return (
     <div
-      className="relative aspect-square w-full h-full max-h-[min(calc(100dvh-100px),calc(100vw-20px))] max-w-[min(calc(100dvh-100px),calc(100vw-20px))] p-1 bg-[#15102a] rounded-2xl border-2 border-[#382b66] shadow-2xl flex items-center justify-center select-none shrink-0"
+      className="relative aspect-square w-full h-full max-h-[min(calc(100dvh-54px),calc(100vw-4px))] lg:max-h-[min(calc(100dvh-75px),calc(100vw-20px))] max-w-[min(calc(100dvh-54px),calc(100vw-4px))] lg:max-w-[min(calc(100dvh-75px),calc(100vw-20px))] p-0.5 sm:p-1 bg-[#15102a] rounded-xl sm:rounded-2xl border border-[#382b66] shadow-2xl flex items-center justify-center select-none shrink-0"
     >
       {/* 11x11 Grid with 1.4fr corners matching Poorup Monopoly Geometry */}
       <div
-        className="w-full h-full grid gap-[1px] bg-[#0c0818] rounded-xl p-[1px]"
+        className="w-full h-full grid gap-[1px] bg-[#0c0818] rounded-lg sm:rounded-xl p-[1px]"
         style={{
           gridTemplateColumns: 'minmax(0, 1.4fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.4fr)',
           gridTemplateRows: 'minmax(0, 1.4fr) repeat(9, minmax(0, 1fr)) minmax(0, 1.4fr)',
@@ -104,7 +104,7 @@ export const Board: React.FC<BoardProps> = ({
         ))}
 
         {/* 3. CENTER AREA (Spans cols 2-10 and rows 2-10) */}
-        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1">
+        <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-0.5 sm:p-1">
           <CenterBoard
             gameState={gameState}
             currentPlayer={currentPlayer}
