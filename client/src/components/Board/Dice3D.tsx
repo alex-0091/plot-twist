@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Dice3DProps {
   dice: [number, number];
@@ -6,45 +6,40 @@ interface Dice3DProps {
   onRollComplete?: () => void;
 }
 
-// Pip placement percentages on 100x100 face
-const PIP_POSITIONS: Record<number, number[][]> = {
+// 6 pip configurations for a 100x100 face
+const PIP_CONFIGS: Record<number, [number, number][]> = {
   1: [[50, 50]],
   2: [[25, 25], [75, 75]],
   3: [[25, 25], [50, 50], [75, 75]],
   4: [[25, 25], [75, 25], [25, 75], [75, 75]],
   5: [[25, 25], [75, 25], [50, 50], [25, 75], [75, 75]],
-  6: [[25, 22], [75, 22], [25, 50], [75, 50], [25, 78], [75, 78]],
+  6: [[25, 20], [75, 20], [25, 50], [75, 50], [25, 80], [75, 80]],
 };
 
-export const PhysicalDie3D: React.FC<{ value: number; rolling: boolean; delay?: number }> = ({
-  value,
-  rolling,
-  delay = 0,
-}) => {
-  const pips = PIP_POSITIONS[value] || PIP_POSITIONS[1];
+// True 3D Cube Face Component
+const DieFace: React.FC<{ value: number; transform: string }> = ({ value, transform }) => {
+  const pips = PIP_CONFIGS[value] || PIP_CONFIGS[1];
 
   return (
     <div
-      className={`relative w-10 h-10 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-white via-[#fcfbf9] to-[#e8e4dc] border border-white/80 shadow-[0_12px_24px_rgba(0,0,0,0.65),inset_0_2px_4px_rgba(255,255,255,1),inset_0_-3px_5px_rgba(0,0,0,0.15)] flex items-center justify-center select-none transition-all duration-300 ${
-        rolling ? 'animate-spin scale-110' : 'hover:scale-105'
-      }`}
+      className="absolute inset-0 bg-gradient-to-br from-[#ffffff] via-[#f7f5f0] to-[#e8e4dc] border border-amber-100 rounded-xl shadow-[inset_0_1px_2px_rgba(255,255,255,1),inset_0_-2px_4px_rgba(0,0,0,0.15)] flex items-center justify-center select-none backface-visible"
       style={{
-        animationDuration: rolling ? '0.7s' : '0s',
-        animationDelay: `${delay}ms`,
+        transform,
+        transformStyle: 'preserve-3d',
       }}
     >
-      {/* Specular highlight bevel */}
-      <div className="absolute inset-1 rounded-xl bg-gradient-to-t from-transparent via-white/20 to-white/80 pointer-events-none" />
+      {/* Glossy top bevel */}
+      <div className="absolute inset-1 rounded-lg bg-gradient-to-b from-white/60 to-transparent pointer-events-none" />
 
-      {/* Die Pips (Vibrant Ruby Red) */}
+      {/* Pips */}
       <div className="relative w-full h-full pointer-events-none">
-        {pips.map(([top, left], i) => (
+        {pips.map(([x, y], i) => (
           <span
             key={i}
-            className="absolute w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-b from-[#e11d48] to-[#9f1239] shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_1px_rgba(255,255,255,0.9)] -translate-x-1/2 -translate-y-1/2"
+            className="absolute w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-gradient-to-b from-[#e11d48] to-[#881337] shadow-[inset_0_1px_2px_rgba(0,0,0,0.9),0_1px_1px_rgba(255,255,255,0.8)] -translate-x-1/2 -translate-y-1/2"
             style={{
-              top: `${top}%`,
-              left: `${left}%`,
+              left: `${x}%`,
+              top: `${y}%`,
             }}
           />
         ))}
@@ -53,7 +48,78 @@ export const PhysicalDie3D: React.FC<{ value: number; rolling: boolean; delay?: 
   );
 };
 
-export const SingleDie = PhysicalDie3D;
+// Rotation mapping for final settle value
+const ROTATION_FOR_VALUE: Record<number, { x: number; y: number }> = {
+  1: { x: 0, y: 0 },
+  2: { x: 0, y: -90 },
+  3: { x: -90, y: 0 },
+  4: { x: 90, y: 0 },
+  5: { x: 0, y: 90 },
+  6: { x: 0, y: 180 },
+};
+
+export const Physical3DCube: React.FC<{ value: number; rolling: boolean; delay?: number }> = ({
+  value,
+  rolling,
+  delay = 0,
+}) => {
+  const [tumbleRotation, setTumbleRotation] = useState({ x: 0, y: 0, z: 0 });
+
+  useEffect(() => {
+    if (rolling) {
+      // Random tumbling angles
+      const rx = (Math.floor(Math.random() * 4) + 3) * 360 + ROTATION_FOR_VALUE[value].x;
+      const ry = (Math.floor(Math.random() * 4) + 3) * 360 + ROTATION_FOR_VALUE[value].y;
+      const rz = (Math.floor(Math.random() * 2) - 1) * 360;
+      setTumbleRotation({ x: rx, y: ry, z: rz });
+    } else {
+      setTumbleRotation({
+        x: ROTATION_FOR_VALUE[value].x,
+        y: ROTATION_FOR_VALUE[value].y,
+        z: 0,
+      });
+    }
+  }, [rolling, value]);
+
+  const sizeClass = "w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13";
+
+  return (
+    <div className="relative perspective-[600px] flex items-center justify-center p-1">
+      {/* 3D Drop Shadow on floor */}
+      <div
+        className={`absolute -bottom-2 w-10 h-3 sm:w-12 sm:h-3.5 bg-black/50 rounded-full blur-sm transition-all duration-500 ${
+          rolling ? 'scale-75 opacity-30 animate-pulse' : 'scale-100 opacity-70'
+        }`}
+      />
+
+      {/* 3D Rolling Cube */}
+      <div
+        className={`relative ${sizeClass} transition-transform duration-700 ease-out`}
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: `rotateX(${tumbleRotation.x}deg) rotateY(${tumbleRotation.y}deg) rotateZ(${tumbleRotation.z}deg)`,
+          transitionDelay: `${delay}ms`,
+        }}
+      >
+        {/* Face 1: Front (Z+) */}
+        <DieFace value={1} transform="translateZ(22px)" />
+        {/* Face 6: Back (Z-) */}
+        <DieFace value={6} transform="rotateY(180deg) translateZ(22px)" />
+        {/* Face 2: Right (X+) */}
+        <DieFace value={2} transform="rotateY(90deg) translateZ(22px)" />
+        {/* Face 5: Left (X-) */}
+        <DieFace value={5} transform="rotateY(-90deg) translateZ(22px)" />
+        {/* Face 3: Top (Y-) */}
+        <DieFace value={3} transform="rotateX(90deg) translateZ(22px)" />
+        {/* Face 4: Bottom (Y+) */}
+        <DieFace value={4} transform="rotateX(-90deg) translateZ(22px)" />
+      </div>
+    </div>
+  );
+};
+
+export const PhysicalDie3D = Physical3DCube;
+export const SingleDie = Physical3DCube;
 
 export const Dice3D: React.FC<Dice3DProps> = ({ dice, isRolling, onRollComplete }) => {
   const [d1, d2] = dice;
@@ -62,15 +128,15 @@ export const Dice3D: React.FC<Dice3DProps> = ({ dice, isRolling, onRollComplete 
     if (isRolling) {
       const timer = setTimeout(() => {
         onRollComplete?.();
-      }, 700);
+      }, 750);
       return () => clearTimeout(timer);
     }
   }, [isRolling, onRollComplete]);
 
   return (
-    <div className="flex items-center justify-center gap-3.5 py-1 select-none pointer-events-none">
-      <PhysicalDie3D value={d1} rolling={isRolling} delay={0} />
-      <PhysicalDie3D value={d2} rolling={isRolling} delay={100} />
+    <div className="flex items-center justify-center gap-4 sm:gap-6 py-2 select-none pointer-events-none">
+      <Physical3DCube value={d1} rolling={isRolling} delay={0} />
+      <Physical3DCube value={d2} rolling={isRolling} delay={100} />
     </div>
   );
 };

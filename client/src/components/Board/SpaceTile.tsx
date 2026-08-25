@@ -26,103 +26,128 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
   const isUtility = space.type === 'UTILITY';
   const isCard = space.type.startsWith('CARD_');
   const isTax = space.type === 'TAX';
+  const isVerticalSide = side === 'LEFT' || side === 'RIGHT';
 
   return (
     <div
       onClick={() => onClick(space.index)}
-      className={`relative bg-[#1a162b] border border-[#2e284a] flex flex-col justify-between cursor-pointer hover:bg-[#25203d] transition-all p-0.5 select-none overflow-hidden group rounded-sm shadow-sm ${
-        propertyState?.isMortgaged ? 'opacity-60 grayscale-[50%]' : ''
+      className={`relative bg-[#1e1738] hover:bg-[#2c2250] border border-[#382c66] flex flex-col justify-between cursor-pointer transition-all p-0.5 select-none overflow-hidden group rounded-sm shadow-sm ${
+        propertyState?.isMortgaged ? 'opacity-60 grayscale-[60%]' : ''
       }`}
       style={{
-        boxShadow: owner ? `inset 0 0 0 1.5px ${owner.color}` : undefined,
+        boxShadow: owner ? `inset 0 0 0 2px ${owner.color}` : undefined,
       }}
       title={`${space.name} - Price: ${space.price || space.taxAmount || ''}`}
     >
-      {/* 1. TOP/BOTTOM SIDES: Color Bar with Price Inside */}
-      {isProperty && (side === 'BOTTOM' || side === 'TOP') && (
+      {/* 1. TOP & BOTTOM SIDES: Horizontal Color Band with Centered Bold Price */}
+      {isProperty && !isVerticalSide && (
         <div
-          className="h-3.5 sm:h-4 w-full rounded-[2px] flex items-center justify-between px-1 shadow-sm overflow-hidden font-mono"
-          style={{ backgroundColor: space.colorHex || '#475569' }}
+          className={`h-4 sm:h-4.5 w-full rounded-[2px] flex items-center justify-center relative shadow-sm overflow-hidden ${
+            side === 'BOTTOM' ? 'order-first' : 'order-last'
+          }`}
+          style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
-          {/* Price inside color box */}
-          <span
-            className="text-[8px] sm:text-[9px] font-black tracking-tight"
-            style={{
-              color: '#000000',
-              textShadow: '0 0 2px #ffffff, 0 0 4px #ffffff',
-            }}
-          >
+          {/* Centered Bold Price Tag */}
+          <span className="text-[8.5px] sm:text-[9.5px] font-black font-mono tracking-tight text-black bg-white/90 px-1 py-0.2 rounded shadow-sm">
             {space.price}
           </span>
 
-          {/* Building indicator */}
+          {/* Building Indicator */}
           {propertyState?.hasHotel ? (
-            <span className="text-[8px] font-black text-red-100 animate-pulse">🏨</span>
+            <span className="absolute right-0.5 text-[8px] font-black text-red-100 animate-pulse">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="text-[7px] font-black text-emerald-100">
+            <span className="absolute right-0.5 text-[7px] font-black text-emerald-100">
               {'🏡'.repeat(propertyState.houses)}
             </span>
           ) : null}
         </div>
       )}
 
-      {/* 2. LEFT/RIGHT SIDES: Color Bar with Price on vertical edge */}
-      {isProperty && (side === 'LEFT' || side === 'RIGHT') && (
+      {/* 2. LEFT & RIGHT SIDES: Vertical Edge Color Band with Price */}
+      {isProperty && isVerticalSide && (
         <div
-          className={`h-full w-3 sm:w-4 absolute top-0 ${side === 'LEFT' ? 'right-0' : 'left-0'} flex flex-col items-center justify-between py-0.5 shadow-sm z-10 font-mono`}
-          style={{ backgroundColor: space.colorHex || '#475569' }}
+          className={`h-full w-3.5 sm:w-4 absolute top-0 ${side === 'LEFT' ? 'right-0' : 'left-0'} flex flex-col items-center justify-center shadow-sm z-10`}
+          style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
-          <span
-            className="text-[7px] sm:text-[8px] font-black tracking-tighter"
-            style={{
-              color: '#000000',
-              textShadow: '0 0 2px #ffffff, 0 0 4px #ffffff',
-            }}
-          >
+          <span className="text-[7.5px] sm:text-[8.5px] font-black font-mono text-black bg-white/90 px-0.5 py-0.5 rounded shadow-sm [writing-mode:vertical-rl] rotate-180">
             {space.price}
           </span>
 
           {propertyState?.hasHotel ? (
-            <span className="text-[7px] font-black text-red-100">🏨</span>
+            <span className="text-[7px] font-black text-red-100 mt-1">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="text-[6px] font-black text-emerald-100">
+            <span className="text-[6px] font-black text-emerald-100 mt-0.5">
               {'🏡'.repeat(propertyState.houses)}
             </span>
           ) : null}
         </div>
       )}
 
-      {/* 3. Main Name Zone */}
+      {/* 3. Main Label Zone */}
       <div
-        className={`flex flex-col items-center justify-center flex-1 text-center py-0.5 z-10 leading-tight ${
-          isProperty && (side === 'LEFT' ? 'pr-3.5 sm:pr-4' : side === 'RIGHT' ? 'pl-3.5 sm:pl-4' : '')
+        className={`flex items-center justify-center flex-1 text-center z-10 leading-tight ${
+          isVerticalSide
+            ? side === 'LEFT'
+              ? 'pr-4 sm:pr-4.5 pl-0.5'
+              : 'pl-4 sm:pl-4.5 pr-0.5'
+            : 'py-0.5'
         }`}
       >
-        <span className="text-[7.5px] sm:text-[9px] md:text-[10px] font-extrabold leading-tight line-clamp-2 text-slate-100 group-hover:text-amber-300 transition-colors">
-          {space.name}
-        </span>
-
-        {/* Icon for non-property tiles */}
-        {(isTransport || isUtility || isCard || isTax) && (
-          <div className="flex flex-col items-center mt-0.5">
-            <span className="text-[11px] sm:text-xs">
-              {space.icon || (isTransport ? '🚂' : isUtility ? '⚡' : isCard ? '🃏' : '📋')}
+        {isVerticalSide ? (
+          /* Vertical Text Layout for Left & Right Columns */
+          <div className="flex flex-col items-center justify-center h-full">
+            <span className="text-[8px] sm:text-[9.5px] font-black tracking-tight text-slate-100 group-hover:text-amber-300 transition-colors [writing-mode:vertical-rl] rotate-180 line-clamp-1">
+              {space.name}
             </span>
-            {space.price && (
-              <span className="text-[7px] sm:text-[8px] font-mono font-bold text-emerald-400">
-                {space.price}
-              </span>
+
+            {/* Non-property icons */}
+            {(isTransport || isUtility || isCard || isTax) && (
+              <div className="flex flex-col items-center mt-1">
+                <span className="text-[10px] sm:text-xs">
+                  {space.icon || (isTransport ? '🚂' : isUtility ? '⚡' : isCard ? '🃏' : '📋')}
+                </span>
+                {space.price && (
+                  <span className="text-[7px] sm:text-[8px] font-mono font-bold text-emerald-400 mt-0.5">
+                    {space.price}
+                  </span>
+                )}
+                {space.taxAmount && (
+                  <span className="text-[7px] sm:text-[8px] font-mono font-bold text-red-400 mt-0.5">
+                    {space.taxAmount}
+                  </span>
+                )}
+              </div>
             )}
-            {space.taxAmount && (
-              <span className="text-[7px] sm:text-[8px] font-mono font-bold text-red-400">
-                {space.taxAmount}
-              </span>
+          </div>
+        ) : (
+          /* Horizontal Text Layout for Top & Bottom Rows */
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-[8px] sm:text-[9.5px] md:text-[10.5px] font-extrabold text-slate-100 group-hover:text-amber-300 transition-colors line-clamp-1">
+              {space.name}
+            </span>
+
+            {(isTransport || isUtility || isCard || isTax) && (
+              <div className="flex flex-col items-center mt-0.5">
+                <span className="text-[11px] sm:text-xs">
+                  {space.icon || (isTransport ? '🚂' : isUtility ? '⚡' : isCard ? '🃏' : '📋')}
+                </span>
+                {space.price && (
+                  <span className="text-[7.5px] sm:text-[8.5px] font-mono font-bold text-emerald-400">
+                    {space.price}
+                  </span>
+                )}
+                {space.taxAmount && (
+                  <span className="text-[7.5px] sm:text-[8.5px] font-mono font-bold text-red-400">
+                    {space.taxAmount}
+                  </span>
+                )}
+              </div>
             )}
           </div>
         )}
       </div>
 
-      {/* Owner Color Strip */}
+      {/* Owner Color Indicator Bar */}
       {owner && (
         <div
           className="absolute bottom-0 inset-x-0 h-1 sm:h-1.5 z-20"

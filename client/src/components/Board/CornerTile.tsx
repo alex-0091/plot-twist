@@ -18,16 +18,16 @@ export const CornerTile: React.FC<CornerTileProps> = ({
   return (
     <div
       onClick={() => onClick(space.index)}
-      className="relative w-full h-full bg-[#1a162b] border border-[#2e284a] flex flex-col items-center justify-center p-0.5 sm:p-1 text-center cursor-pointer hover:bg-[#25203d] transition-colors select-none overflow-hidden group shadow-sm rounded-sm"
+      className="relative w-full h-full bg-[#1b1533] border border-[#382c66] flex flex-col items-center justify-center p-1 text-center cursor-pointer hover:bg-[#281f4a] transition-colors select-none overflow-hidden group shadow-sm rounded-sm"
     >
       {/* 1. Space 0: START */}
       {space.index === 0 && (
         <div className="flex flex-col items-center justify-center leading-none">
-          <span className="text-sm sm:text-base md:text-xl">💵</span>
-          <span className="text-[7.5px] sm:text-[9px] md:text-xs font-black text-amber-400 tracking-wider mt-0.5">
+          <span className="text-base sm:text-xl md:text-2xl filter drop-shadow">💵</span>
+          <span className="text-[8px] sm:text-[9.5px] md:text-xs font-black text-amber-400 tracking-wider mt-0.5">
             START
           </span>
-          <span className="text-[6.5px] sm:text-[8px] font-black text-white bg-emerald-700/80 px-1 py-0.2 rounded mt-0.5 font-mono shadow">
+          <span className="text-[7px] sm:text-[8.5px] font-black text-black bg-[#22c55e] px-1.5 py-0.5 rounded mt-0.5 font-mono shadow">
             +200
           </span>
         </div>
@@ -36,18 +36,19 @@ export const CornerTile: React.FC<CornerTileProps> = ({
       {/* 2. Space 10: QUETTA CAFE / THANA */}
       {space.index === 10 && (
         <div className="flex flex-col items-center justify-center w-full h-full leading-tight">
-          <div className="text-center">
+          <div className="text-center flex flex-col items-center">
             <span className="text-xs sm:text-sm">☕</span>
-            <div className="text-[6px] sm:text-[7.5px] md:text-[8px] font-black text-amber-300">
+            <div className="text-[6.5px] sm:text-[8px] md:text-[9px] font-black text-amber-300 tracking-tight">
               QUETTA CAFE
             </div>
-            <div className="text-[5px] sm:text-[6px] text-slate-400">Visiting</div>
+            <div className="text-[5.5px] sm:text-[6.5px] text-slate-400 font-semibold">Visiting</div>
           </div>
-          <div className="w-full border-t border-[#2e284a] my-0.5" />
-          <div className="text-center">
-            <span className="text-[6px] sm:text-[7.5px] md:text-[8px] font-black text-red-400">
+          <div className="w-full border-t border-[#382c66] my-0.5" />
+          <div className="text-center flex flex-col items-center">
+            <span className="text-xs sm:text-sm">🚔</span>
+            <div className="text-[6.5px] sm:text-[8px] md:text-[9px] font-black text-red-400 tracking-tight">
               THANA (JAIL)
-            </span>
+            </div>
           </div>
         </div>
       )}
@@ -55,22 +56,22 @@ export const CornerTile: React.FC<CornerTileProps> = ({
       {/* 3. Space 20: HIRA MANDI */}
       {space.index === 20 && (
         <div className="flex flex-col items-center justify-center leading-tight">
-          <span className="text-sm sm:text-base md:text-lg">🎭</span>
-          <span className="text-[6.5px] sm:text-[8px] md:text-[9.5px] font-black text-purple-400 tracking-tight mt-0.5">
+          <span className="text-base sm:text-xl md:text-2xl filter drop-shadow">🎭</span>
+          <span className="text-[7px] sm:text-[8.5px] md:text-[10px] font-black text-purple-400 tracking-tight mt-0.5">
             HIRA MANDI
           </span>
-          <span className="text-[5.5px] sm:text-[7px] text-slate-400">Free Rest</span>
+          <span className="text-[6px] sm:text-[7.5px] text-slate-400 font-semibold mt-0.5">Free Parking</span>
         </div>
       )}
 
       {/* 4. Space 30: MET A LAHORI */}
       {space.index === 30 && (
         <div className="flex flex-col items-center justify-center leading-tight">
-          <span className="text-sm sm:text-base md:text-lg">🚨</span>
-          <span className="text-[6.5px] sm:text-[8px] md:text-[9.5px] font-black text-red-400 tracking-tight mt-0.5">
+          <span className="text-base sm:text-xl md:text-2xl filter drop-shadow animate-pulse">🚨</span>
+          <span className="text-[7px] sm:text-[8.5px] md:text-[10px] font-black text-red-400 tracking-tight mt-0.5">
             MET A LAHORI
           </span>
-          <span className="text-[5.5px] sm:text-[6.5px] font-bold text-red-300 bg-red-950/80 px-0.5 rounded mt-0.5">
+          <span className="text-[6px] sm:text-[7px] font-black text-white bg-red-800/90 px-1 py-0.2 rounded mt-0.5">
             GO TO JAIL
           </span>
         </div>

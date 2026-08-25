@@ -9,14 +9,12 @@ interface BoardProps {
   gameState: GameState;
   myPlayerId: string | null;
   onSelectProperty: (spaceIndex: number) => void;
-  onOpenRules?: () => void;
 }
 
 export const Board: React.FC<BoardProps> = ({
   gameState,
   myPlayerId,
   onSelectProperty,
-  onOpenRules,
 }) => {
   const currentPlayer = gameState.players[gameState.currentPlayerIndex] || null;
 
@@ -32,15 +30,15 @@ export const Board: React.FC<BoardProps> = ({
 
   return (
     <div
-      className="relative aspect-square p-0.5 sm:p-1 bg-[#1c182c] rounded-2xl border border-[#2e284a] shadow-2xl flex items-center justify-center select-none shrink-0"
+      className="relative aspect-square p-0.5 sm:p-1 bg-[#17112b] rounded-2xl border border-[#382c66] shadow-2xl flex items-center justify-center select-none shrink-0"
       style={{
-        maxHeight: 'min(calc(100dvh - 110px), calc(100vw - 12px))',
-        maxWidth: 'min(calc(100dvh - 110px), calc(100vw - 12px))',
+        maxHeight: 'min(calc(100dvh - 105px), calc(100vw - 10px))',
+        maxWidth: 'min(calc(100dvh - 105px), calc(100vw - 10px))',
         width: '100%',
         height: '100%',
       }}
     >
-      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 bg-[#130f1d] rounded-xl p-0.5">
+      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 bg-[#100c1e] rounded-xl p-0.5">
         {/* 1. TOP ROW: Spaces 20 (Corner) -> 21..29 -> 30 (Corner) */}
         <div className="col-start-1 row-start-1">
           <CornerTile
@@ -74,7 +72,7 @@ export const Board: React.FC<BoardProps> = ({
           />
         </div>
 
-        {/* 2. LEFT COLUMN: Spaces 19 down to 11 */}
+        {/* 2. LEFT COLUMN: Spaces 19 down to 11 (Vertical layout) */}
         {[19, 18, 17, 16, 15, 14, 13, 12, 11].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: 1, gridRowStart: idx + 2 }}>
             <SpaceTile
@@ -95,11 +93,10 @@ export const Board: React.FC<BoardProps> = ({
             gameState={gameState}
             currentPlayer={currentPlayer}
             myPlayerId={myPlayerId}
-            onOpenRules={onOpenRules}
           />
         </div>
 
-        {/* 4. RIGHT COLUMN: Spaces 31 to 39 */}
+        {/* 4. RIGHT COLUMN: Spaces 31 to 39 (Vertical layout) */}
         {[31, 32, 33, 34, 35, 36, 37, 38, 39].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: 11, gridRowStart: idx + 2 }}>
             <SpaceTile

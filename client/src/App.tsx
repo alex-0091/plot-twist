@@ -184,7 +184,6 @@ export function App() {
             gameState={gameState}
             myPlayerId={myPlayerId}
             onSelectProperty={(idx) => setSelectedPropertyIndex(idx)}
-            onOpenRules={() => setShowRulesModal(true)}
           />
         </div>
 
