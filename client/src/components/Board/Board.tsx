@@ -32,17 +32,16 @@ export const Board: React.FC<BoardProps> = ({
 
   return (
     <div
-      className="relative aspect-square p-1 sm:p-1.5 bg-slate-950 rounded-2xl border-2 sm:border-4 border-emerald-600/60 shadow-[0_0_35px_rgba(5,150,105,0.3)] truck-art-border flex items-center justify-center select-none shrink-0"
+      className="relative aspect-square p-1 bg-[#1c182c] rounded-2xl border-2 border-[#2e284a] shadow-2xl flex items-center justify-center select-none shrink-0"
       style={{
-        maxHeight: 'min(calc(100dvh - 125px), calc(100vw - 16px))',
-        maxWidth: 'min(calc(100dvh - 125px), calc(100vw - 16px))',
+        maxHeight: 'min(calc(100dvh - 120px), calc(100vw - 16px))',
+        maxWidth: 'min(calc(100dvh - 120px), calc(100vw - 16px))',
         width: '100%',
         height: '100%',
       }}
     >
-      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 bg-slate-900/80 rounded-xl p-0.5">
+      <div className="w-full h-full grid grid-cols-11 grid-rows-11 gap-0.5 bg-[#130f1d] rounded-xl p-0.5">
         {/* 1. TOP ROW: Spaces 20 (Corner) -> 21..29 -> 30 (Corner) */}
-        {/* Row 1, Col 1: Space 20 (Hira Mandi / Free Parking) */}
         <div className="col-start-1 row-start-1">
           <CornerTile
             space={BOARD_SPACES[20]}
@@ -52,7 +51,6 @@ export const Board: React.FC<BoardProps> = ({
           />
         </div>
 
-        {/* Row 1, Cols 2..10: Spaces 21 to 29 */}
         {[21, 22, 23, 24, 25, 26, 27, 28, 29].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: idx + 2, gridRowStart: 1 }}>
             <SpaceTile
@@ -67,7 +65,6 @@ export const Board: React.FC<BoardProps> = ({
           </div>
         ))}
 
-        {/* Row 1, Col 11: Space 30 (Met a Lahori / Go to Jail) */}
         <div className="col-start-11 row-start-1">
           <CornerTile
             space={BOARD_SPACES[30]}
@@ -77,7 +74,7 @@ export const Board: React.FC<BoardProps> = ({
           />
         </div>
 
-        {/* 2. LEFT COLUMN: Spaces 19 down to 11 (Cols 1, Rows 2..10) */}
+        {/* 2. LEFT COLUMN: Spaces 19 down to 11 */}
         {[19, 18, 17, 16, 15, 14, 13, 12, 11].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: 1, gridRowStart: idx + 2 }}>
             <SpaceTile
@@ -92,7 +89,7 @@ export const Board: React.FC<BoardProps> = ({
           </div>
         ))}
 
-        {/* 3. CENTER AREA: Cols 2..10, Rows 2..10 */}
+        {/* 3. CENTER AREA */}
         <div className="col-start-2 col-end-11 row-start-2 row-end-11 p-1">
           <CenterBoard
             gameState={gameState}
@@ -102,7 +99,7 @@ export const Board: React.FC<BoardProps> = ({
           />
         </div>
 
-        {/* 4. RIGHT COLUMN: Spaces 31 to 39 (Cols 11, Rows 2..10) */}
+        {/* 4. RIGHT COLUMN: Spaces 31 to 39 */}
         {[31, 32, 33, 34, 35, 36, 37, 38, 39].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: 11, gridRowStart: idx + 2 }}>
             <SpaceTile
@@ -117,8 +114,7 @@ export const Board: React.FC<BoardProps> = ({
           </div>
         ))}
 
-        {/* 5. BOTTOM ROW: Spaces 10 (Corner) -> 9 down to 1 -> 0 (Corner) */}
-        {/* Row 11, Col 1: Space 10 (Thana / Quetta Café) */}
+        {/* 5. BOTTOM ROW: Spaces 10 down to 0 */}
         <div className="col-start-1 row-start-11">
           <CornerTile
             space={BOARD_SPACES[10]}
@@ -128,7 +124,6 @@ export const Board: React.FC<BoardProps> = ({
           />
         </div>
 
-        {/* Row 11, Cols 2..10: Spaces 9 down to 1 */}
         {[9, 8, 7, 6, 5, 4, 3, 2, 1].map((spaceIdx, idx) => (
           <div key={spaceIdx} style={{ gridColumnStart: idx + 2, gridRowStart: 11 }}>
             <SpaceTile
@@ -143,7 +138,6 @@ export const Board: React.FC<BoardProps> = ({
           </div>
         ))}
 
-        {/* Row 11, Col 11: Space 0 (START / Salary Aa Gayi) */}
         <div className="col-start-11 row-start-11">
           <CornerTile
             space={BOARD_SPACES[0]}

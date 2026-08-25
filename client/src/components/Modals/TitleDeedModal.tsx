@@ -42,12 +42,12 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
     : 0;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border-2 border-emerald-500/60 rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 select-none">
+      <div className="bg-[#1c182c] border border-[#2e284a] rounded-3xl max-w-sm w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Top Header Card Banner */}
         <div
           className="p-4 text-center text-white shadow-md relative"
-          style={{ backgroundColor: space.colorHex || '#065f46' }}
+          style={{ backgroundColor: space.colorHex || '#7053ff' }}
         >
           <button
             onClick={onClose}
@@ -56,7 +56,7 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
             ✕
           </button>
           <span className="text-[10px] font-black tracking-widest uppercase opacity-90 block">
-            TITLE DEED / ملکیت نامہ
+            TITLE DEED • ملکیت نامہ
           </span>
           <h2 className="text-xl font-black mt-0.5 drop-shadow">{space.name}</h2>
           {space.urduName && (
@@ -72,28 +72,28 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
         {/* Card Body */}
         <div className="p-4 space-y-3 text-xs">
           {/* Ownership Status */}
-          <div className="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800">
-            <span className="text-slate-400 font-medium">Owner:</span>
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#130f1d] border border-[#2e284a]">
+            <span className="text-slate-400 font-semibold">Owner:</span>
             {owner ? (
-              <span className="font-bold flex items-center gap-1.5" style={{ color: owner.color }}>
+              <span className="font-extrabold flex items-center gap-1.5" style={{ color: owner.color }}>
                 <span>{owner.tokenEmoji}</span>
                 <span>{owner.name} {isOwner ? '(You)' : ''}</span>
               </span>
             ) : (
-              <span className="text-emerald-400 font-bold">Unowned (Bank)</span>
+              <span className="text-[#81be97] font-extrabold">Unowned (Bank)</span>
             )}
           </div>
 
           {/* Property Rent Table */}
           {space.type === 'PROPERTY' && (
-            <div className="space-y-1.5 border-t border-b border-slate-800 py-2">
+            <div className="space-y-1.5 border-t border-b border-[#2e284a] py-2.5 font-mono">
               <div className="flex justify-between font-bold text-slate-200">
                 <span>Base Rent:</span>
-                <span className="text-emerald-400">Rs {space.rent}</span>
+                <span className="text-[#81be97]">Rs {space.rent}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Rent with Full City Set:</span>
-                <span className="font-semibold text-emerald-400">Rs {space.rentWithSet}</span>
+                <span className="font-bold text-[#81be97]">Rs {space.rentWithSet}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>With 1 House:</span>
@@ -111,87 +111,93 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
                 <span>With 4 Houses:</span>
                 <span className="text-slate-200">Rs {space.rentWith4Houses}</span>
               </div>
-              <div className="flex justify-between font-bold text-red-300">
-                <span>With Luxury Hotel 🏨:</span>
-                <span className="text-red-400 font-black">Rs {space.rentWithHotel}</span>
+              <div className="flex justify-between font-bold text-red-400">
+                <span>With Luxury Hotel:</span>
+                <span>Rs {space.rentWithHotel}</span>
               </div>
             </div>
           )}
 
-          {/* Transport / Utility Rent rules */}
-          {space.type === 'TRANSPORT' && (
-            <div className="space-y-1 text-slate-300 border-t border-b border-slate-800 py-2">
-              <p>• 1 Station: Rs 25</p>
-              <p>• 2 Stations: Rs 50</p>
-              <p>• 3 Stations: Rs 100</p>
-              <p>• 4 Stations: Rs 200</p>
+          {/* Costs & Values */}
+          <div className="grid grid-cols-2 gap-2 text-[11px] bg-[#130f1d] p-2.5 rounded-xl border border-[#2e284a]">
+            <div>
+              <span className="text-slate-400 block">House Cost:</span>
+              <strong className="text-slate-200">Rs {space.houseCost || 50}</strong>
             </div>
-          )}
-
-          {space.type === 'UTILITY' && (
-            <div className="space-y-1 text-slate-300 border-t border-b border-slate-800 py-2">
-              <p>• If 1 Utility owned: 4 × Dice Roll</p>
-              <p>• If Both Utilities owned: 10 × Dice Roll</p>
+            <div>
+              <span className="text-slate-400 block">Hotel Cost:</span>
+              <strong className="text-slate-200">Rs {space.hotelCost || 100}</strong>
             </div>
-          )}
-
-          {/* Building & Mortgage Costs */}
-          <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-950/60 p-2 rounded-lg border border-slate-800">
-            {space.houseCost && (
-              <div>
-                <span className="text-slate-400 block">House Cost:</span>
-                <span className="font-bold text-amber-400">Rs {space.houseCost} each</span>
-              </div>
-            )}
-            {space.hotelCost && (
-              <div>
-                <span className="text-slate-400 block">Hotel Cost:</span>
-                <span className="font-bold text-red-400">Rs {space.hotelCost} (+4 houses)</span>
-              </div>
-            )}
-            {space.mortgageValue && (
-              <div>
-                <span className="text-slate-400 block">Mortgage Value:</span>
-                <span className="font-bold text-slate-200">Rs {space.mortgageValue}</span>
-              </div>
-            )}
-            {space.price && (
-              <div>
-                <span className="text-slate-400 block">Purchase Price:</span>
-                <span className="font-bold text-emerald-400">Rs {space.price}</span>
-              </div>
-            )}
+            <div>
+              <span className="text-slate-400 block">Mortgage Value:</span>
+              <strong className="text-amber-400">Rs {space.mortgageValue || 50}</strong>
+            </div>
+            <div>
+              <span className="text-slate-400 block">Unmortgage (+10%):</span>
+              <strong className="text-emerald-400">Rs {Math.floor((space.mortgageValue || 50) * 1.1)}</strong>
+            </div>
           </div>
 
-          {/* Actions if Current Player is Owner */}
-          {isOwner && propState && (
+          {/* Current Buildings State */}
+          {propState && (
+            <div className="flex items-center justify-between text-xs px-1 text-slate-300">
+              <span>Current Status:</span>
+              {propState.isMortgaged ? (
+                <span className="text-red-400 font-bold">📄 Mortgaged</span>
+              ) : propState.hasHotel ? (
+                <span className="text-red-400 font-bold">🏨 Luxury Hotel</span>
+              ) : propState.houses > 0 ? (
+                <span className="text-[#81be97] font-bold">🏡 {propState.houses} Houses</span>
+              ) : (
+                <span className="text-slate-400">Vacant Land</span>
+              )}
+            </div>
+          )}
+
+          {/* Action Buttons for Owner */}
+          {isOwner && myPlayer && !myPlayer.isBankrupt && (
             <div className="pt-2 flex flex-col gap-2">
               {/* Build Button */}
-              {space.type === 'PROPERTY' && ownsFullSet && !propState.hasHotel && !propState.isMortgaged && (
+              {ownsFullSet && !propState?.isMortgaged && !propState?.hasHotel && (
                 <button
-                  onClick={() => onBuildHouse(space.index)}
-                  className="w-full py-2 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white font-bold rounded-lg shadow-md transition-transform hover:scale-[1.02]"
+                  onClick={() => {
+                    onBuildHouse(space.index);
+                    onClose();
+                  }}
+                  disabled={
+                    (propState?.houses === 4 && myPlayer.cash < (space.hotelCost || 100)) ||
+                    (propState?.houses !== 4 && myPlayer.cash < (space.houseCost || 50))
+                  }
+                  className="w-full py-2.5 bg-[#81be97] hover:bg-[#6eab84] disabled:opacity-40 text-slate-950 font-black text-xs rounded-xl shadow transition-transform hover:scale-105"
                 >
-                  {propState.houses === 4
-                    ? `🏨 Build Luxury Hotel (Rs ${space.hotelCost})`
-                    : `🏡 Build House #${propState.houses + 1} (Rs ${space.houseCost})`}
+                  {propState?.houses === 4
+                    ? `🏨 Build Luxury Hotel (Rs ${space.hotelCost || 100})`
+                    : `🏡 Build House #${(propState?.houses || 0) + 1} (Rs ${space.houseCost || 50})`}
                 </button>
               )}
 
               {/* Mortgage / Unmortgage Button */}
-              {propState.isMortgaged ? (
+              {propState?.isMortgaged ? (
                 <button
-                  onClick={() => onUnmortgage(space.index)}
-                  className="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-transform hover:scale-[1.02]"
+                  onClick={() => {
+                    onUnmortgage(space.index);
+                    onClose();
+                  }}
+                  disabled={myPlayer.cash < unmortgageCost}
+                  className="w-full py-2 bg-[#7053ff] hover:bg-[#6244f5] disabled:opacity-40 text-white font-bold text-xs rounded-xl shadow transition-transform hover:scale-105"
                 >
-                  📄 Lift Mortgage (Pay Rs {unmortgageCost})
+                  Lift Mortgage (Pay Rs {unmortgageCost})
                 </button>
               ) : (
                 <button
-                  onClick={() => onMortgage(space.index)}
-                  className="w-full py-2 bg-slate-800 hover:bg-red-950/80 border border-slate-700 text-red-300 font-bold rounded-lg transition-colors"
+                  onClick={() => {
+                    onMortgage(space.index);
+                    onClose();
+                  }}
+                  disabled={(propState?.houses || 0) > 0 || propState?.hasHotel}
+                  className="w-full py-2 bg-[#2e1818] hover:bg-[#4a2626] disabled:opacity-40 text-red-300 font-bold text-xs rounded-xl border border-red-800 transition-transform hover:scale-105"
                 >
-                  📄 Mortgage Property (Receive Rs {space.mortgageValue})
+                  Mortgage Property (Get Rs {space.mortgageValue || 50})
                 </button>
               )}
             </div>

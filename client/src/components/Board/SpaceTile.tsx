@@ -30,8 +30,8 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
   return (
     <div
       onClick={() => onClick(space.index)}
-      className={`relative bg-slate-900/95 border border-slate-800/80 flex flex-col justify-between cursor-pointer hover:bg-slate-800 transition-all p-0.5 sm:p-1 select-none overflow-hidden group rounded-sm shadow-sm ${
-        propertyState?.isMortgaged ? 'opacity-65 grayscale-[60%]' : ''
+      className={`relative bg-[#1a162b] border border-[#2e284a] flex flex-col justify-between cursor-pointer hover:bg-[#25203d] transition-all p-0.5 sm:p-1 select-none overflow-hidden group rounded-sm shadow-sm ${
+        propertyState?.isMortgaged ? 'opacity-60 grayscale-[50%]' : ''
       }`}
       style={{
         boxShadow: owner ? `inset 0 0 0 1.5px ${owner.color}` : undefined,
@@ -76,14 +76,7 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
           isProperty && (side === 'LEFT' ? 'pr-2 sm:pr-3' : side === 'RIGHT' ? 'pl-2 sm:pl-3' : '')
         }`}
       >
-        {/* Urdu Name Subtitle */}
-        {space.urduName && (
-          <span className="text-[7px] sm:text-[8px] text-emerald-400 font-urdu leading-none truncate max-w-full opacity-75 hidden sm:block">
-            {space.urduName}
-          </span>
-        )}
-
-        {/* English Name */}
+        {/* English Name (Bold & Crisp) */}
         <span className="text-[8px] sm:text-[10px] md:text-[11px] font-extrabold leading-tight line-clamp-2 text-slate-100 group-hover:text-amber-300 transition-colors">
           {space.name}
         </span>
@@ -95,7 +88,7 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
           </span>
         )}
 
-        {/* Price / Tax display */}
+        {/* Price display */}
         {space.price && (
           <span className="text-[8px] sm:text-[9px] font-black text-emerald-400 mt-0.5">
             Rs {space.price}

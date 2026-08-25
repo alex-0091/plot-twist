@@ -30,56 +30,47 @@ export const CenterBoard: React.FC<CenterBoardProps> = ({
   }, [gameState.lastDice]);
 
   return (
-    <div className="relative flex flex-col items-center justify-between p-3 sm:p-4 bg-gradient-to-br from-slate-900/95 via-emerald-950/40 to-slate-900/95 rounded-2xl border-2 border-emerald-500/40 shadow-2xl overflow-hidden select-none w-full h-full">
-      {/* Background Watermark */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center font-black text-9xl">
-        🇵🇰
-      </div>
-
+    <div className="relative flex flex-col items-center justify-between p-2 sm:p-3 bg-[#171328] rounded-xl border border-[#2e284a] shadow-inner select-none w-full h-full">
       {/* Header Logo */}
       <div className="flex flex-col items-center z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-xl sm:text-2xl animate-bounce-short">🇵🇰</span>
-          <h1 className="text-xl sm:text-3xl font-black tracking-wider bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-400 bg-clip-text text-transparent drop-shadow">
+        <div className="flex items-center gap-1.5">
+          <span className="text-lg sm:text-xl">🇵🇰</span>
+          <h1 className="text-lg sm:text-2xl font-black tracking-wider text-white">
             PLOT TWIST
           </h1>
         </div>
-        <p className="text-[9px] sm:text-[10px] text-amber-300 font-bold tracking-widest uppercase mt-0.5">
-          Pakistan's Property Game
+        <p className="text-[8px] sm:text-[9px] text-[#b1b2f2] font-bold tracking-widest uppercase">
+          Rule the economy
         </p>
 
         {gameState.settings.freeParkingMode === 'POT' && (
-          <div className="mt-1 bg-purple-950/90 border border-purple-500/50 px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] text-purple-200 font-bold flex items-center gap-1.5 shadow">
-            <span>🎭 Hira Mandi Pot:</span>
-            <span className="text-amber-300 font-black">Rs {gameState.freeParkingPot}</span>
+          <div className="mt-1 bg-[#241d3b] border border-[#3b3260] px-2 py-0.5 rounded-full text-[8px] sm:text-[9px] text-[#d49cff] font-bold flex items-center gap-1">
+            <span>🎭 Hira Mandi:</span>
+            <span className="text-amber-300 font-bold">Rs {gameState.freeParkingPot}</span>
           </div>
         )}
       </div>
 
       {/* Center 3D Dice & Decks */}
-      <div className="flex flex-col items-center justify-center gap-2.5 z-10 w-full max-w-xs my-auto">
-        {/* Interactive Deck Piles */}
-        <div className="grid grid-cols-2 gap-2.5 w-full">
-          {/* Scene On Hai */}
-          <div className="bg-amber-950/70 border border-amber-500/60 rounded-xl p-2 flex flex-col items-center justify-center text-center shadow-lg transition-transform hover:-translate-y-0.5">
-            <span className="text-lg">😂</span>
-            <span className="text-[9px] font-black text-amber-300 uppercase tracking-wider">
+      <div className="flex flex-col items-center justify-center gap-2 z-10 w-full max-w-xs my-auto">
+        {/* Card Decks */}
+        <div className="grid grid-cols-2 gap-2 w-full">
+          <div className="bg-[#241d3b] border border-[#3b3260] rounded-xl p-1.5 flex flex-col items-center justify-center text-center shadow">
+            <span className="text-base">😂</span>
+            <span className="text-[8px] font-black text-amber-300 uppercase tracking-wider">
               SCENE ON HAI
             </span>
-            <span className="text-[8px] text-amber-400/80 font-urdu">سین آن ہے</span>
           </div>
 
-          {/* Pakistan Zindabad */}
-          <div className="bg-emerald-950/70 border border-emerald-500/60 rounded-xl p-2 flex flex-col items-center justify-center text-center shadow-lg transition-transform hover:-translate-y-0.5">
-            <span className="text-lg">🇵🇰</span>
-            <span className="text-[9px] font-black text-emerald-300 uppercase tracking-wider">
+          <div className="bg-[#1c2826] border border-[#28483b] rounded-xl p-1.5 flex flex-col items-center justify-center text-center shadow">
+            <span className="text-base">🇵🇰</span>
+            <span className="text-[8px] font-black text-emerald-300 uppercase tracking-wider">
               PAKISTAN ZINDABAD
             </span>
-            <span className="text-[8px] text-emerald-400/80 font-urdu">پاکستان زندہ باد</span>
           </div>
         </div>
 
-        {/* 3D Realistic Dice */}
+        {/* 3D Dice */}
         <Dice3D
           dice={gameState.lastDice}
           isRolling={isRolling}
@@ -87,25 +78,25 @@ export const CenterBoard: React.FC<CenterBoardProps> = ({
         />
       </div>
 
-      {/* Bottom Turn Status & Bank Supply */}
-      <div className="w-full flex flex-col items-center gap-1.5 z-10 mt-auto">
+      {/* Bottom Turn Status */}
+      <div className="w-full flex flex-col items-center gap-1 z-10 mt-auto">
         {currentPlayer && (
           <div
-            className={`w-full py-1.5 px-3 rounded-xl text-center font-black text-xs sm:text-sm shadow-md transition-all ${
+            className={`w-full py-1 px-2.5 rounded-xl text-center font-black text-xs shadow transition-all ${
               isMyTurn
-                ? 'bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white ring-2 ring-emerald-300 animate-pulse'
-                : 'bg-slate-800 text-slate-200 border border-slate-700'
+                ? 'bg-[#7053ff] text-white ring-2 ring-[#b1b2f2] animate-pulse'
+                : 'bg-[#1c182c] text-slate-300 border border-[#2e284a]'
             }`}
           >
             {isMyTurn ? (
-              <span>👉 IT'S YOUR TURN! Roll & Build!</span>
+              <span>👉 YOUR TURN</span>
             ) : (
               <span>⏳ {currentPlayer.name}'s turn...</span>
             )}
           </div>
         )}
 
-        <div className="flex items-center justify-between w-full text-[9px] text-slate-400 px-1 font-semibold">
+        <div className="flex items-center justify-between w-full text-[8px] sm:text-[9px] text-slate-400 px-1 font-semibold">
           <span className="flex items-center gap-1">
             <span>🏡 Bank:</span>
             <strong className="text-emerald-400">{gameState.availableHouses}H</strong>
@@ -116,7 +107,7 @@ export const CenterBoard: React.FC<CenterBoardProps> = ({
           {onOpenRules && (
             <button
               onClick={onOpenRules}
-              className="text-amber-400 hover:text-amber-300 underline font-bold"
+              className="text-[#b1b2f2] hover:text-white underline font-bold"
             >
               Match Rules 📋
             </button>
