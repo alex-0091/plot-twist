@@ -1,14 +1,14 @@
 import { BoardSpace, CityGroup } from './types';
 
-export const CITY_GROUP_COLORS: Record<CityGroup, { hex: string; name: string; monument: string }> = {
-  RAWALPINDI: { hex: '#7c3aed', name: 'Rawalpindi', monument: 'Liaquat Bagh' },
-  LAHORE: { hex: '#38bdf8', name: 'Lahore', monument: 'Minar-e-Pakistan' },
-  PESHAWAR: { hex: '#f472b6', name: 'Peshawar', monument: 'Bab-e-Khyber' },
-  MULTAN: { hex: '#fb923c', name: 'Multan', monument: 'Rukn-e-Alam Tomb' },
-  FAISALABAD: { hex: '#ef4444', name: 'Faisalabad', monument: 'Ghanta Ghar' },
-  MURREE: { hex: '#facc15', name: 'Murree', monument: 'Mall Road Murree' },
-  KARACHI: { hex: '#22c55e', name: 'Karachi', monument: 'Mazar-e-Quaid' },
-  ISLAMABAD: { hex: '#2563eb', name: 'Islamabad', monument: 'Faisal Mosque' },
+export const CITY_GROUP_COLORS: Record<CityGroup, { hex: string; name: string; icon: string; monument: string }> = {
+  RAWALPINDI: { hex: '#7c3aed', name: 'Rawalpindi', icon: '🏰', monument: 'Liaquat Bagh' },
+  LAHORE: { hex: '#38bdf8', name: 'Lahore', icon: '🕌', monument: 'Minar-e-Pakistan' },
+  PESHAWAR: { hex: '#f472b6', name: 'Peshawar', icon: '⛩️', monument: 'Bab-e-Khyber' },
+  MULTAN: { hex: '#fb923c', name: 'Multan', icon: '🕌', monument: 'Rukn-e-Alam Tomb' },
+  FAISALABAD: { hex: '#ef4444', name: 'Faisalabad', icon: '🕰️', monument: 'Ghanta Ghar' },
+  MURREE: { hex: '#facc15', name: 'Murree', icon: '🌲', monument: 'Mall Road Murree' },
+  KARACHI: { hex: '#22c55e', name: 'Karachi', icon: '🏛️', monument: 'Mazar-e-Quaid' },
+  ISLAMABAD: { hex: '#2563eb', name: 'Islamabad', icon: '🏛️', monument: 'Faisal Mosque' },
 };
 
 export const BOARD_SPACES: BoardSpace[] = [

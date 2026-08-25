@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoardSpace, PropertyState, Player } from '../../types';
+import { BoardSpace, PropertyState, Player, CITY_GROUP_COLORS } from '../../types';
 import { TokenPiece } from './TokenPiece';
 
 interface SpaceTileProps {
@@ -28,6 +28,8 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
   const isTax = space.type === 'TAX';
   const isVerticalSide = side === 'LEFT' || side === 'RIGHT';
 
+  const cityInfo = space.cityGroup ? CITY_GROUP_COLORS[space.cityGroup] : null;
+
   return (
     <div
       onClick={() => onClick(space.index)}
@@ -39,47 +41,61 @@ export const SpaceTile: React.FC<SpaceTileProps> = ({
       }}
       title={`${space.name} - Price: ${space.price || space.taxAmount || ''}`}
     >
-      {/* 1. TOP & BOTTOM SIDES: Horizontal Color Band with Centered Bold Price */}
+      {/* 1. TOP & BOTTOM SIDES: Horizontal Color Band with City Icon + Price */}
       {isProperty && !isVerticalSide && (
         <div
-          className={`h-4 sm:h-4.5 w-full rounded-[2px] flex items-center justify-center relative shadow-sm overflow-hidden ${
+          className={`h-4 sm:h-4.5 w-full rounded-[2px] flex items-center justify-between px-1 shadow-sm overflow-hidden ${
             side === 'BOTTOM' ? 'order-first' : 'order-last'
           }`}
           style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
+          {/* City Icon Symbol */}
+          {cityInfo && (
+            <span className="text-[9px] sm:text-[10px] leading-none filter drop-shadow">
+              {cityInfo.icon}
+            </span>
+          )}
+
           {/* Centered Bold Price Tag */}
-          <span className="text-[8.5px] sm:text-[9.5px] font-black font-mono tracking-tight text-black bg-white/90 px-1 py-0.2 rounded shadow-sm">
+          <span className="text-[8px] sm:text-[9px] font-black font-mono tracking-tight text-black bg-white/90 px-1 py-0.2 rounded shadow-sm">
             {space.price}
           </span>
 
           {/* Building Indicator */}
           {propertyState?.hasHotel ? (
-            <span className="absolute right-0.5 text-[8px] font-black text-red-100 animate-pulse">🏨</span>
+            <span className="text-[8px] font-black text-red-100 animate-pulse">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="absolute right-0.5 text-[7px] font-black text-emerald-100">
+            <span className="text-[7px] font-black text-emerald-100">
               {'🏡'.repeat(propertyState.houses)}
             </span>
-          ) : null}
+          ) : <span className="w-2" />}
         </div>
       )}
 
-      {/* 2. LEFT & RIGHT SIDES: Vertical Edge Color Band with Price */}
+      {/* 2. LEFT & RIGHT SIDES: Vertical Edge Color Band with City Icon + Price */}
       {isProperty && isVerticalSide && (
         <div
-          className={`h-full w-3.5 sm:w-4 absolute top-0 ${side === 'LEFT' ? 'right-0' : 'left-0'} flex flex-col items-center justify-center shadow-sm z-10`}
+          className={`h-full w-3.5 sm:w-4 absolute top-0 ${side === 'LEFT' ? 'right-0' : 'left-0'} flex flex-col items-center justify-between py-0.5 shadow-sm z-10`}
           style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
-          <span className="text-[7.5px] sm:text-[8.5px] font-black font-mono text-black bg-white/90 px-0.5 py-0.5 rounded shadow-sm [writing-mode:vertical-rl] rotate-180">
+          {/* City Icon Symbol */}
+          {cityInfo && (
+            <span className="text-[8px] leading-none filter drop-shadow">
+              {cityInfo.icon}
+            </span>
+          )}
+
+          <span className="text-[7px] sm:text-[8px] font-black font-mono text-black bg-white/90 px-0.5 py-0.5 rounded shadow-sm [writing-mode:vertical-rl] rotate-180">
             {space.price}
           </span>
 
           {propertyState?.hasHotel ? (
-            <span className="text-[7px] font-black text-red-100 mt-1">🏨</span>
+            <span className="text-[7px] font-black text-red-100">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="text-[6px] font-black text-emerald-100 mt-0.5">
+            <span className="text-[6px] font-black text-emerald-100">
               {'🏡'.repeat(propertyState.houses)}
             </span>
-          ) : null}
+          ) : <span className="h-1" />}
         </div>
       )}
 
