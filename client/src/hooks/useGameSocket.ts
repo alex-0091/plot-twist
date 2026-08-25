@@ -368,8 +368,20 @@ export function useGameSocket() {
     }
   };
 
+  const isRollingDiceRef = useRef(false);
+
   const rollDice = useCallback(() => {
     if (!gameState || !myPlayerId) return;
+    const curP = gameState.players[gameState.currentPlayerIndex];
+    if (!curP || curP.id !== myPlayerId || gameState.diceRolled || isRollingDiceRef.current) {
+      return;
+    }
+
+    isRollingDiceRef.current = true;
+    setTimeout(() => {
+      isRollingDiceRef.current = false;
+    }, 1200);
+
     sounds.playDiceRoll();
     if (socket && !isSupabaseConfigured) {
       socket.emit('roll_dice', { roomCode: gameState.roomCode, playerId: myPlayerId });
@@ -377,8 +389,8 @@ export function useGameSocket() {
     }
 
     syncState((state) => {
-      const curP = state.players[state.currentPlayerIndex];
-      if (curP.id !== myPlayerId || state.diceRolled) return state;
+      const curPlayer = state.players[state.currentPlayerIndex];
+      if (curPlayer.id !== myPlayerId || state.diceRolled) return state;
 
       const d1 = Math.floor(Math.random() * 6) + 1;
       const d2 = Math.floor(Math.random() * 6) + 1;
