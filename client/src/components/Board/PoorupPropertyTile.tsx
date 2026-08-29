@@ -150,7 +150,7 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
 
       {/* 5. PLAYER TOKENS ON THIS TILE */}
       {playersHere.length > 0 && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center gap-0.5 flex-wrap p-0.5 z-40 bg-black/25 backdrop-blur-[0.5px]">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center gap-1 flex-wrap p-0.5 z-40">
           {playersHere.map((p) => (
             <TokenPiece
               key={p.id}

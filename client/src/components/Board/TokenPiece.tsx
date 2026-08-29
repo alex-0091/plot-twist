@@ -7,31 +7,50 @@ interface TokenPieceProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const TokenPiece: React.FC<TokenPieceProps> = ({ player, isCurrentPlayer, size = 'md' }) => {
+export const TokenPiece: React.FC<TokenPieceProps> = ({ player, isCurrentPlayer, size = 'sm' }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4 text-[9px]',
-    md: 'w-5 h-5 text-[11px]',
-    lg: 'w-7 h-7 text-xs',
+    sm: 'w-5 h-5 sm:w-6 sm:h-6 text-[10px] sm:text-xs',
+    md: 'w-6 h-6 sm:w-7 sm:h-7 text-xs sm:text-sm',
+    lg: 'w-8 h-8 sm:w-9 sm:h-9 text-sm sm:text-base',
   }[size];
 
   const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
+  const playerColor = player.color || '#22c55e';
 
   return (
     <div
-      className={`relative rounded-full flex items-center justify-center font-black text-white shadow-md border-2 border-white/90 transition-all duration-200 select-none ${
-        isCurrentPlayer ? 'scale-125 ring-2 ring-amber-300 animate-pulse z-30 shadow-lg' : 'hover:scale-110 z-20'
+      className={`relative rounded-full flex items-center justify-center font-black text-white select-none transition-all duration-200 cursor-pointer ${
+        isCurrentPlayer
+          ? 'scale-115 -translate-y-0.5 z-40 animate-bounce'
+          : 'hover:scale-110 z-20'
       } ${sizeClasses}`}
       style={{
-        backgroundColor: player.color || '#22c55e',
-        boxShadow: `0 2px 6px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.6)`,
+        backgroundColor: playerColor,
+        border: '2px solid #ffffff',
+        boxShadow: isCurrentPlayer
+          ? `0 0 12px ${playerColor}, 0 4px 10px rgba(0,0,0,0.9), inset 0 2px 3px rgba(255,255,255,0.7)`
+          : `0 0 6px ${playerColor}99, 0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.5)`,
       }}
-      title={`${player.name} - ${player.cash}`}
+      title={`${player.name} — Balance: ${player.cash}`}
     >
-      <span className="leading-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+      {/* 3D Gloss highlight */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-t from-black/20 via-transparent to-white/40 pointer-events-none" />
+
+      {/* High Contrast Initial */}
+      <span className="relative z-10 leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] font-mono">
         {initial}
       </span>
+
+      {/* Active Player Halo Crown */}
+      {isCurrentPlayer && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[8px] sm:text-[10px] leading-none filter drop-shadow animate-pulse pointer-events-none">
+          ▼
+        </span>
+      )}
+
+      {/* Jail Indicator */}
       {player.inJail && (
-        <span className="absolute -top-1 -right-1 text-[7px] bg-red-600 rounded-full px-0.5 text-white font-bold leading-none border border-white">
+        <span className="absolute -top-1 -right-1 text-[8px] bg-red-600 rounded-full p-0.5 text-white font-bold leading-none border border-white shadow">
           🔒
         </span>
       )}

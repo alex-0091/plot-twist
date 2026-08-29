@@ -82,7 +82,7 @@ export const PoorupCornerTile: React.FC<PoorupCornerTileProps> = ({
 
       {/* Player Tokens on this corner space */}
       {playersHere.length > 0 && (
-        <div className="absolute inset-0 pointer-events-none flex items-center justify-center gap-0.5 flex-wrap p-0.5 z-30 bg-black/30 backdrop-blur-[0.5px]">
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center gap-1 flex-wrap p-0.5 z-40">
           {playersHere.map((p) => (
             <TokenPiece
               key={p.id}
