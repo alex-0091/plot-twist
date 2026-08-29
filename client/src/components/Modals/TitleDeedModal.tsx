@@ -13,14 +13,14 @@ interface TitleDeedModalProps {
 
 // City monument icons/vectors
 const CITY_MONUMENT_ICONS: Record<string, string> = {
-  ISLAMABAD: '🏛️', // Faisal Mosque / Centaurus
+  ISLAMABAD: '🏛️', // Faisal Mosque
   KARACHI: '🏛️', // Mazar-e-Quaid
-  LAHORE: '🕌', // Minar-e-Pakistan / Badshahi Mosque
+  LAHORE: '🕌', // Minar-e-Pakistan
   PESHAWAR: '⛩️', // Bab-e-Khyber
   RAWALPINDI: '🏰', // Liaquat Bagh / Fort
   MULTAN: '🕌', // Tomb of Rukn-e-Alam
-  FAISALABAD: '🕰️', // Ghanta Ghar / Clock Tower
-  MURREE: '🌲', // Pine Hills & Mall Road
+  FAISALABAD: '🕰️', // Ghanta Ghar
+  MURREE: '🌲', // Pine Hills
 };
 
 export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
@@ -53,7 +53,9 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
     : 0;
 
   const cityInfo = space.cityGroup ? CITY_GROUP_COLORS[space.cityGroup] : null;
-  const monumentIcon = space.cityGroup ? CITY_MONUMENT_ICONS[space.cityGroup] || '🏛️' : '🏢';
+  const monumentIcon = space.cityGroup
+    ? CITY_MONUMENT_ICONS[space.cityGroup] || cityInfo?.icon || '🏛️'
+    : space.icon || (space.type === 'TRANSPORT' ? '🚂' : space.type === 'UTILITY' ? '⚡' : space.type === 'GO_TO_JAIL' ? '🚨' : space.type === 'JAIL' ? '☕' : '🏢');
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 select-none">
@@ -76,7 +78,7 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
           </div>
 
           <span className="text-[9px] font-black tracking-widest uppercase opacity-90 block">
-            TITLE DEED
+            {space.type === 'PROPERTY' ? 'TITLE DEED' : 'BOARD SPACE'}
           </span>
           <h2 className="text-lg sm:text-xl font-black drop-shadow">{space.name}</h2>
           {cityInfo && (
@@ -88,18 +90,50 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
 
         {/* Body Content */}
         <div className="p-3.5 space-y-2.5 text-xs">
-          {/* Owner Status */}
-          <div className="flex items-center justify-between p-2 rounded-xl bg-[#130f1d] border border-[#2e284a]">
-            <span className="text-slate-400 font-semibold text-[11px]">Owner:</span>
-            {owner ? (
-              <span className="font-extrabold flex items-center gap-1.5 text-xs" style={{ color: owner.color }}>
-                <span>{owner.tokenEmoji}</span>
-                <span>{owner.name} {isOwner ? '(You)' : ''}</span>
+          {/* Custom Description for Met a Lahori & Special Spaces */}
+          {space.type === 'GO_TO_JAIL' && (
+            <div className="p-3 rounded-xl bg-[#2e1818] border border-red-800 text-center">
+              <span className="text-red-300 font-bold block text-sm">
+                🚨 Met a Lahori and went the wrong way!
               </span>
-            ) : (
-              <span className="text-[#81be97] font-bold text-xs">Bank (Unowned)</span>
-            )}
-          </div>
+              <span className="text-slate-400 text-xs mt-1 block">
+                Go directly to Thana without passing Start or collecting salary.
+              </span>
+            </div>
+          )}
+
+          {space.type === 'JAIL' && (
+            <div className="p-2.5 rounded-xl bg-[#130f1d] border border-[#2e284a] text-center text-slate-300">
+              ☕ Quetta Cafe visiting lounge or Thana jail cell.
+            </div>
+          )}
+
+          {space.type === 'FREE_PARKING' && (
+            <div className="p-2.5 rounded-xl bg-[#130f1d] border border-[#2e284a] text-center text-slate-300">
+              🎭 Hira Mandi: Free Rest zone. No rent or taxes due here.
+            </div>
+          )}
+
+          {space.type === 'START' && (
+            <div className="p-2.5 rounded-xl bg-[#130f1d] border border-[#2e284a] text-center text-slate-300">
+              💵 START: Collect +{gameState.settings.salaryOnStart} salary whenever you pass or land here.
+            </div>
+          )}
+
+          {/* Owner Status for Purchasable Tiles */}
+          {['PROPERTY', 'TRANSPORT', 'UTILITY'].includes(space.type) && (
+            <div className="flex items-center justify-between p-2 rounded-xl bg-[#130f1d] border border-[#2e284a]">
+              <span className="text-slate-400 font-semibold text-[11px]">Owner:</span>
+              {owner ? (
+                <span className="font-extrabold flex items-center gap-1.5 text-xs" style={{ color: owner.color }}>
+                  <span>{owner.tokenEmoji}</span>
+                  <span>{owner.name} {isOwner ? '(You)' : ''}</span>
+                </span>
+              ) : (
+                <span className="text-[#81be97] font-bold text-xs">Bank ({space.price})</span>
+              )}
+            </div>
+          )}
 
           {/* Rent Table */}
           {space.type === 'PROPERTY' && (
@@ -136,24 +170,26 @@ export const TitleDeedModal: React.FC<TitleDeedModalProps> = ({
           )}
 
           {/* Costs & Mortgage Info */}
-          <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono bg-[#130f1d] p-2 rounded-xl border border-[#2e284a]">
-            <div>
-              <span className="text-slate-400 block font-sans">House Cost:</span>
-              <strong className="text-slate-200">{space.houseCost || 50}</strong>
+          {space.type === 'PROPERTY' && (
+            <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono bg-[#130f1d] p-2 rounded-xl border border-[#2e284a]">
+              <div>
+                <span className="text-slate-400 block font-sans">House Cost:</span>
+                <strong className="text-slate-200">{space.houseCost || 50}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-sans">Hotel Cost:</span>
+                <strong className="text-slate-200">{space.hotelCost || 100}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-sans">Mortgage:</span>
+                <strong className="text-amber-400">+{space.mortgageValue || 50}</strong>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-sans">Unmortgage:</span>
+                <strong className="text-emerald-400">-{Math.floor((space.mortgageValue || 50) * 1.1)}</strong>
+              </div>
             </div>
-            <div>
-              <span className="text-slate-400 block font-sans">Hotel Cost:</span>
-              <strong className="text-slate-200">{space.hotelCost || 100}</strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block font-sans">Mortgage:</span>
-              <strong className="text-amber-400">+{space.mortgageValue || 50}</strong>
-            </div>
-            <div>
-              <span className="text-slate-400 block font-sans">Unmortgage:</span>
-              <strong className="text-emerald-400">-{Math.floor((space.mortgageValue || 50) * 1.1)}</strong>
-            </div>
-          </div>
+          )}
 
           {/* Actions for Owner */}
           {isOwner && myPlayer && !myPlayer.isBankrupt && (

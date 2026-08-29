@@ -29,8 +29,8 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
 
   const cityInfo = space.cityGroup ? CITY_GROUP_COLORS[space.cityGroup] : null;
 
-  // TOP & BOTTOM sides: tall tile (flex flex-col)
-  // LEFT & RIGHT sides: wide tile (flex flex-row)
+  // TOP & BOTTOM sides: tall tile (flex-col)
+  // LEFT & RIGHT sides: wide tile (flex-row)
   const isHorizontalSide = side === 'TOP' || side === 'BOTTOM';
 
   return (
@@ -44,78 +44,82 @@ export const PoorupPropertyTile: React.FC<PoorupPropertyTileProps> = ({
       }}
       title={`${space.name} - Price: ${space.price || space.taxAmount || ''}`}
     >
-      {/* 1. PROPERTY COLOR HEADER BAND (POORUP FORMAT) */}
+      {/* 1. PROPERTY COLOR HEADER BAND (POORUP FORMAT) WITH CITY ICON & PRICE */}
       {isProperty && (
         <div
-          className={`relative flex items-center justify-between px-1 shrink-0 ${
+          className={`relative flex items-center justify-between px-0.5 sm:px-1 shrink-0 ${
             side === 'TOP'
-              ? 'order-last h-[24%] w-full border-t border-black/20'
+              ? 'order-last h-[25%] w-full border-t border-black/20'
               : side === 'BOTTOM'
-              ? 'order-first h-[24%] w-full border-b border-black/20'
+              ? 'order-first h-[25%] w-full border-b border-black/20'
               : side === 'LEFT'
-              ? 'order-last w-[24%] h-full flex-col py-1 border-l border-black/20'
-              : 'order-first w-[24%] h-full flex-col py-1 border-r border-black/20'
+              ? 'order-last w-[25%] h-full flex-col py-0.5 border-l border-black/20'
+              : 'order-first w-[25%] h-full flex-col py-0.5 border-r border-black/20'
           }`}
           style={{ backgroundColor: space.colorHex || '#6366f1' }}
         >
           {/* Pakistani City Icon */}
           {cityInfo && (
-            <span className="text-[9px] sm:text-[10px] leading-none filter drop-shadow">
+            <span className="text-[8px] sm:text-[9.5px] leading-none filter drop-shadow">
               {cityInfo.icon}
             </span>
           )}
 
+          {/* Bold Price Pill Inside Color Band */}
+          <span
+            className={`text-[7px] sm:text-[8px] font-black font-mono text-black bg-white/95 px-0.5 rounded shadow-sm leading-none ${
+              !isHorizontalSide ? '[writing-mode:vertical-rl] rotate-180' : ''
+            }`}
+          >
+            {space.price}
+          </span>
+
           {/* Building Count Indicators (Houses / Hotel) */}
           {propertyState?.hasHotel ? (
-            <span className="text-[8.5px] font-black text-red-100 animate-pulse">🏨</span>
+            <span className="text-[8px] font-black text-red-100 animate-pulse">🏨</span>
           ) : propertyState?.houses ? (
-            <span className="text-[7px] font-black text-emerald-100 tracking-tighter">
+            <span className="text-[6.5px] font-black text-emerald-100 tracking-tighter">
               {'🏡'.repeat(propertyState.houses)}
             </span>
           ) : null}
         </div>
       )}
 
-      {/* 2. BODY CONTENT (NAME + PRICE + SPECIAL ICONS) */}
+      {/* 2. BODY CONTENT (NAME + SPECIAL ICONS & PRICES) */}
       <div
-        className={`flex-1 flex flex-col items-center justify-between p-0.5 text-center overflow-hidden z-10 ${
-          !isHorizontalSide ? 'w-[76%] justify-center' : 'h-[76%]'
+        className={`flex-1 flex flex-col items-center justify-center p-0.5 text-center overflow-hidden z-10 ${
+          !isHorizontalSide ? 'w-[75%] h-full' : 'h-[75%] w-full'
         }`}
       >
         {/* Special space icons (Railways, Utilities, Cards, Taxes) */}
         {!isProperty && (
-          <div className="text-[11px] sm:text-xs my-auto leading-none filter drop-shadow">
+          <div className="text-[10px] sm:text-xs leading-none filter drop-shadow mb-0.5">
             {space.icon || (isTransport ? '🚂' : isUtility ? '⚡' : isCard ? '🃏' : '📋')}
           </div>
         )}
 
-        {/* Property / Space Name (Reduced by 1px font size) */}
-        <div className="w-full my-auto flex items-center justify-center">
-          <span
-            className={`font-black tracking-tight text-slate-100 group-hover:text-amber-300 transition-colors leading-tight text-center ${
-              !isHorizontalSide
-                ? 'text-[7px] sm:text-[8px] md:text-[8.5px] line-clamp-2 px-0.5'
-                : 'text-[7px] sm:text-[8px] md:text-[8.5px] line-clamp-2 px-0.5'
-            }`}
-          >
-            {space.name}
-          </span>
-        </div>
+        {/* Property / Space Name */}
+        <span
+          className={`font-black tracking-tight text-slate-100 group-hover:text-amber-300 transition-colors leading-[1.1] text-center ${
+            !isHorizontalSide
+              ? 'text-[6.5px] sm:text-[7.5px] md:text-[8.5px] line-clamp-2 px-0.5'
+              : 'text-[6.5px] sm:text-[7.5px] md:text-[8.5px] line-clamp-2 px-0.5'
+          }`}
+        >
+          {space.name}
+        </span>
 
-        {/* Clean Numeric Price Tag */}
-        {space.price ? (
-          <div className="mt-auto">
-            <span className="text-[7px] sm:text-[8px] font-black font-mono text-emerald-400 bg-black/50 px-1 py-0.2 rounded leading-none inline-block">
-              {space.price}
-            </span>
-          </div>
-        ) : space.taxAmount ? (
-          <div className="mt-auto">
-            <span className="text-[7px] sm:text-[8px] font-black font-mono text-red-400 bg-black/50 px-1 py-0.2 rounded leading-none inline-block">
-              {space.taxAmount}
-            </span>
-          </div>
-        ) : null}
+        {/* Non-property Price / Tax Tag */}
+        {!isProperty && space.price && (
+          <span className="text-[6.5px] sm:text-[7.5px] font-black font-mono text-emerald-400 bg-black/60 px-1 py-0.2 rounded mt-0.5 leading-none">
+            {space.price}
+          </span>
+        )}
+        {!isProperty && space.taxAmount && (
+          <span className="text-[6.5px] sm:text-[7.5px] font-black font-mono text-red-400 bg-black/60 px-1 py-0.2 rounded mt-0.5 leading-none">
+            {space.taxAmount}
+          </span>
+        )}
       </div>
 
       {/* 3. OWNER INDICATOR STRIP */}

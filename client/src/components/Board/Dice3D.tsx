@@ -67,7 +67,7 @@ export const Physical3DCube: React.FC<{ value: number; rolling: boolean; delay?:
 
   useEffect(() => {
     if (rolling) {
-      // Accumulate forward spins (never spin backward)
+      // Accumulate forward spins (smooth, slightly slower tumble)
       turnsCountRef.current.x += Math.floor(Math.random() * 2) + 2;
       turnsCountRef.current.y += Math.floor(Math.random() * 2) + 2;
 
@@ -84,14 +84,14 @@ export const Physical3DCube: React.FC<{ value: number; rolling: boolean; delay?:
     <div className="relative perspective-[600px] flex items-center justify-center p-1">
       {/* 3D Drop Shadow on floor */}
       <div
-        className={`absolute -bottom-2 w-10 h-3 sm:w-12 sm:h-3.5 bg-black/50 rounded-full blur-sm transition-all duration-500 ${
+        className={`absolute -bottom-2 w-10 h-3 sm:w-12 sm:h-3.5 bg-black/50 rounded-full blur-sm transition-all duration-700 ${
           rolling ? 'scale-75 opacity-30 animate-pulse' : 'scale-100 opacity-70'
         }`}
       />
 
-      {/* 3D Single Forward Rolling Cube */}
+      {/* 3D Single Forward Rolling Cube - Slower 900ms smooth tumble */}
       <div
-        className={`relative ${sizeClass} transition-transform duration-600 ease-out`}
+        className={`relative ${sizeClass} transition-transform duration-900 ease-out`}
         style={{
           transformStyle: 'preserve-3d',
           transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg) rotateZ(${rotation.z}deg)`,
@@ -124,7 +124,7 @@ export const Dice3D: React.FC<Dice3DProps> = ({ dice, isRolling, onRollComplete 
     if (isRolling) {
       const timer = setTimeout(() => {
         onRollComplete?.();
-      }, 650);
+      }, 950);
       return () => clearTimeout(timer);
     }
   }, [isRolling, onRollComplete]);

@@ -402,40 +402,39 @@ export function useGameSocket() {
       state.logs.push({
         id: `log_${Date.now()}`,
         timestamp: Date.now(),
-        text: `🎲 ${curP.name} rolled [${d1}, ${d2}] = ${total}${isDouble ? ' (DOUBLES!)' : ''}`,
+        text: `🎲 ${curPlayer.name} rolled [${d1}, ${d2}] = ${total}${isDouble ? ' (DOUBLES!)' : ''}`,
         type: 'ROLL',
       });
 
       // Jail Check
-      if (curP.inJail) {
+      if (curPlayer.inJail) {
         if (isDouble) {
-          curP.inJail = false;
-          curP.jailTurns = 0;
-          const oldPos = curP.position;
-          curP.position = (oldPos + total) % 40;
+          curPlayer.inJail = false;
+          curPlayer.jailTurns = 0;
+          const oldPos = curPlayer.position;
+          curPlayer.position = (oldPos + total) % 40;
           state.hasMovedThisTurn = true;
         } else {
-          curP.jailTurns += 1;
+          curPlayer.jailTurns += 1;
           state.hasMovedThisTurn = true;
         }
         return state;
       }
 
       // Normal movement
-      const oldPos = curP.position;
+      const oldPos = curPlayer.position;
       const newPos = (oldPos + total) % 40;
-      curP.position = newPos;
+      curPlayer.position = newPos;
       state.hasMovedThisTurn = true;
 
       // Salary on START
       if (newPos < oldPos && oldPos !== 0) {
-        curP.cash += state.settings.salaryOnStart;
+        curPlayer.cash += state.settings.salaryOnStart;
         state.logs.push({
           id: `log_${Date.now()}_sal`,
           timestamp: Date.now(),
-          text: `💵 ${curP.name} passed SALARY AA GAYI and collected Rs ${state.settings.salaryOnStart}!`,
+          text: `💵 ${curPlayer.name} passed START and collected ${state.settings.salaryOnStart}!`,
           type: 'MOVE',
-          urduFlavor: 'تنخواہ آ گئی!',
         });
       }
 
@@ -444,7 +443,7 @@ export function useGameSocket() {
       // Rent check
       if (['PROPERTY', 'TRANSPORT', 'UTILITY'].includes(sp.type)) {
         const ps = state.properties[sp.index];
-        if (ps && ps.ownerId && ps.ownerId !== curP.id && !ps.isMortgaged) {
+        if (ps && ps.ownerId && ps.ownerId !== curPlayer.id && !ps.isMortgaged) {
           const owner = state.players.find((p) => p.id === ps.ownerId);
           if (owner && !owner.isBankrupt) {
             let rent = sp.rent || 15;
@@ -454,46 +453,79 @@ export function useGameSocket() {
             else if (ps.houses === 2) rent = sp.rentWith2Houses || rent * 2;
             else if (ps.houses === 1) rent = sp.rentWith1House || rent * 1.5;
 
-            curP.cash -= Math.floor(rent);
+            curPlayer.cash -= Math.floor(rent);
             owner.cash += Math.floor(rent);
             state.logs.push({
               id: `log_${Date.now()}_rent`,
               timestamp: Date.now(),
-              text: `💸 ${curP.name} paid Rs ${Math.floor(rent)} rent to ${owner.name} for ${sp.name}!`,
+              text: `💸 ${curPlayer.name} paid ${Math.floor(rent)} rent to ${owner.name} for ${sp.name}!`,
               type: 'RENT',
             });
           }
         }
       } else if (sp.type === 'GO_TO_JAIL') {
-        curP.position = 10;
-        curP.inJail = true;
-        curP.jailTurns = 0;
+        curPlayer.position = 10;
+        curPlayer.inJail = true;
+        curPlayer.jailTurns = 0;
         state.logs.push({
           id: `log_${Date.now()}_jail`,
           timestamp: Date.now(),
-          text: `🚔 ${curP.name} met a Lahori and went straight to THANA!`,
+          text: `🚨 ${curPlayer.name} met a Lahori and went straight to THANA!`,
           type: 'JAIL',
         });
       } else if (sp.type === 'TAX') {
         const tax = sp.taxAmount || 100;
-        curP.cash -= tax;
+        curPlayer.cash -= tax;
         state.logs.push({
           id: `log_${Date.now()}_tax`,
           timestamp: Date.now(),
-          text: `📋 ${curP.name} paid Rs ${tax} tax (${sp.name})!`,
+          text: `📋 ${curPlayer.name} paid ${tax} Tax to the Bank.`,
           type: 'RENT',
         });
+        if (state.settings.freeParkingMode === 'POT') {
+          state.freeParkingPot += tax;
+        }
+      } else if (sp.type === 'FREE_PARKING') {
+        if (state.settings.freeParkingMode === 'POT' && state.freeParkingPot > 0) {
+          const pot = state.freeParkingPot;
+          curPlayer.cash += pot;
+          state.freeParkingPot = 0;
+          state.logs.push({
+            id: `log_${Date.now()}_pot`,
+            timestamp: Date.now(),
+            text: `🎭 ${curPlayer.name} landed on HIRA MANDI and won the Jackpot of ${pot}!`,
+            type: 'RENT',
+          });
+        }
       } else if (sp.type.startsWith('CARD_')) {
         const deckType = sp.type === 'CARD_SCENE_ON_HAI' ? 'SCENE_ON_HAI' : 'PAKISTAN_ZINDABAD';
         const deck = ALL_CARDS.filter((c) => c.deck === deckType);
         const card = deck[Math.floor(Math.random() * deck.length)];
         state.lastCardDrawn = card;
-        executeCardEffect(card, curP, state);
         state.logs.push({
           id: `log_${Date.now()}_card`,
           timestamp: Date.now(),
-          text: `🎴 ${curP.name} drew "${card.title}": ${card.actionText}`,
+          text: `🃏 ${curPlayer.name} drew "${card.title}": ${card.actionText}`,
           type: 'CARD',
+        });
+        executeCardEffect(card, curPlayer, state);
+      }
+
+      // Check Bankruptcy
+      if (curPlayer.cash < 0) {
+        curPlayer.isBankrupt = true;
+        curPlayer.properties.forEach((pIdx) => {
+          state.properties[pIdx].ownerId = null;
+          state.properties[pIdx].houses = 0;
+          state.properties[pIdx].hasHotel = false;
+          state.properties[pIdx].isMortgaged = false;
+        });
+        curPlayer.properties = [];
+        state.logs.push({
+          id: `log_${Date.now()}_bankrupt`,
+          timestamp: Date.now(),
+          text: `💀 ${curPlayer.name} went BANKRUPT! All plots returned to Bank.`,
+          type: 'BANKRUPT',
         });
       }
 
